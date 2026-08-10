@@ -1,0 +1,112 @@
+# Routing: change class -> mode, roles, mandatory quality dimensions.
+# This file is DATA. It is what stops each agent inventing its own process.
+# Projects tighten or extend it in .ai/config/overrides.yaml.
+
+defaults:
+  mode: standard
+  implementers: [implementer]
+  reviewers: [reviewer]
+  dimensions: [correctness, maintainability, documentation]
+
+# Modes control ceremony, not quality.
+modes:
+  fast:
+    description: Localised, low-risk, reversible, no interface change.
+    max_files: 5
+    require_plan: false
+    reviewers: 1
+  standard:
+    description: Normal feature or multi-layer change.
+    require_plan: true
+    reviewers: 2
+  critical:
+    description: Irreversible, security-relevant, or user-money-relevant.
+    require_plan: true
+    require_architecture_review: true
+    require_threat_model: true
+    require_rollback_plan: true
+    require_human_approval: true
+    reviewers: 3
+
+classes:
+
+  copy_or_content:
+    match: [text change, label, wording, translation, static content]
+    mode: fast
+    dimensions: [correctness, human_experience, accessibility]
+
+  ui_change:
+    match: [component, layout, styling, page, client state]
+    mode: standard
+    implementers: [implementer]
+    reviewers: [reviewer, human_experience_reviewer]
+    dimensions: [correctness, human_experience, accessibility, responsiveness, maintainability, documentation]
+
+  api_change:
+    match: [endpoint, handler, contract, request/response shape]
+    mode: standard
+    reviewers: [reviewer, verifier]
+    dimensions: [correctness, api_contract_stability, backward_compatibility, error_handling, observability, security, documentation, testing]
+
+  data_model_change:
+    match: [schema, migration, index, entity, relation]
+    mode: critical
+    implementers: [implementer]
+    reviewers: [architect, reviewer, verifier]
+    dimensions: [correctness, data_integrity, migration_safety, rollback, performance, backup_recovery, documentation, testing]
+
+  auth_or_permissions:
+    match: [authentication, authorization, session, role, token, access control]
+    mode: critical
+    reviewers: [architect, reviewer, verifier, human_experience_reviewer]
+    dimensions: [correctness, security, threat_model, data_privacy, error_handling, observability, testing, human_experience, audit_trail]
+
+  money_or_payments:
+    match: [payment, billing, invoice, subscription, order, trade execution]
+    mode: critical
+    dimensions: [correctness, security, data_integrity, idempotency, audit_trail, error_handling, rollback, observability, compliance, testing]
+
+  ai_feature:
+    match: [llm, prompt, embedding, rag, agent, model call, inference]
+    mode: standard
+    reviewers: [reviewer, verifier]
+    dimensions: [correctness, output_quality_evaluation, hallucination_risk, prompt_injection_resistance, cost_control, latency, fallback_behaviour, observability, testing, documentation]
+
+  infrastructure:
+    match: [deploy, pipeline, container, terraform, environment, dns, scaling]
+    mode: critical
+    reviewers: [architect, reviewer]
+    dimensions: [correctness, reliability, rollback, secrets_handling, cost, observability, disaster_recovery, documentation]
+
+  dependency_change:
+    match: [add package, upgrade, remove dependency, lockfile]
+    mode: standard
+    dimensions: [correctness, supply_chain_security, licence_compliance, breaking_change_risk, testing]
+
+  performance_work:
+    match: [latency, throughput, memory, query time, bundle size]
+    mode: standard
+    dimensions: [measured_baseline, measured_after, correctness_preserved, regression_testing, documentation]
+    rule: No performance change is accepted without a before and after measurement.
+
+  bug_fix:
+    match: [defect, regression, incorrect behaviour, crash]
+    mode: standard
+    dimensions: [root_cause_identified, regression_test_added, correctness, related_occurrences_checked]
+    rule: A fix without a failing-test-first is provisional, not complete.
+
+  new_project:
+    match: [greenfield, initialise, from scratch]
+    mode: critical
+    implementers: [analyst, architect]
+    reviewers: [architect, reviewer]
+    dimensions: [requirements_captured, non_functional_requirements_quantified, technology_decision_recorded, architecture_recorded, project_constitution_written]
+
+# Escalation: a class can be upgraded but never downgraded.
+escalators:
+  - if_touches: [production config, secrets, user data, auth, money]
+    force_mode: critical
+  - if_files_changed_over: 40
+    force_mode: critical
+  - if_fabrications_introduced: true
+    add_dimensions: [fabrication_replacement_plan]

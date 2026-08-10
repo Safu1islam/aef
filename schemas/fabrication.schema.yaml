@@ -1,0 +1,22 @@
+# .ai/state/fabrications.yaml
+# Every mock, stub, placeholder, hardcoded value, fake dataset, simulated response.
+# Written AT CREATION TIME. This is what makes an AI-built system auditable by a human.
+
+fabrication:
+  id: F-001
+  created_by_task: T-004
+  created_at: iso8601
+  kind: mock_data|stub_function|hardcoded_value|fake_api|simulated_response|placeholder_ui|sample_content
+  location: path/to/file.ext:LINE
+  what_is_fake: "Order book returns three static levels"
+  why: "Exchange credentials unavailable during development"
+  visible_to_user: true|false     # true = must never reach production
+  replacement_condition: "Live market data feed configured"
+  replacement_task: T-019|null
+  status: active|replaced|obsolete
+
+rules:
+  - No task may be reported COMPLETE while a fabrication it depends on is active.
+  - No release may proceed with any active fabrication where visible_to_user is true.
+  - Discovery of unregistered fabrication in existing code is a BLOCKING finding.
+  - Removing an entry requires evidence the real implementation is in place and verified.

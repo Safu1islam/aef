@@ -1,0 +1,9 @@
+.DS_Store
+Thumbs.db
+*.log
+.venv/
+__pycache__/
+node_modules/
+
+# Projects using AEF keep their own .ai/ layer. It never belongs in this repo.
+.ai/

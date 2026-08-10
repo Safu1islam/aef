@@ -1,0 +1,15 @@
+# .ai/state/locks.yaml — prevents two agents editing the same path.
+
+lock:
+  path: src/auth/**
+  task_id: T-014
+  agent: session-id
+  model: string
+  acquired_at: iso8601
+  expires_at: iso8601             # framework.yaml execution.lock_ttl_minutes
+
+rules:
+  - Acquire before the first edit. Release at task completion or abandonment.
+  - Never edit a path locked by another agent. Take a different ready task.
+  - Expired locks may be reclaimed; record the reclaim on the task.
+  - Overlapping owned_paths between concurrent tasks means the plan is wrong. Re-plan.

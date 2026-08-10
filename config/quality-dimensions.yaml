@@ -1,0 +1,195 @@
+# Quality dimensions.
+# This is the catalogue of what "enterprise-grade" concretely means.
+# routing.yaml selects which dimensions are MANDATORY for a change class.
+# Each dimension states what must exist and how it is evidenced.
+# A dimension with no evidence is NOT_RUN, never PASSED.
+
+correctness:
+  requires: Behaviour matches every acceptance criterion.
+  evidence: Executed test or reproducible manual step with observed output.
+
+maintainability:
+  requires: A new agent can locate, understand and safely change this in isolation.
+  evidence: Module boundary stated; no file exceeds project size convention.
+
+documentation:
+  requires: Docs reflect the change; no stale statements left behind.
+  evidence: Diff of updated docs, or explicit "no doc impact" with reason.
+
+testing:
+  requires: Automated coverage appropriate to the risk class.
+  evidence: Test names + executed result.
+
+error_handling:
+  requires: No silent failure. Every failure path produces a meaningful, recoverable error.
+  evidence: Enumerated failure paths and their behaviour.
+
+human_experience:
+  requires: Tested as a user, not read as code.
+  personas: [first_time, returning, non_technical, expert, mobile, incomplete_data, makes_mistakes, restricted_permissions, adversarial]
+  checks: [purpose_clear, next_action_discoverable, labels_match_expectation, empty_state, loading_state, error_state, recovery_path, work_preserved, output_trustworthy, actually_solves_problem]
+  evidence: Persona walked, step by step, with observed result per step.
+
+accessibility:
+  requires: Keyboard reachable, labelled, sufficient contrast, screen-reader sensible.
+  evidence: Automated check result plus manual keyboard pass.
+
+responsiveness:
+  requires: Works at mobile and desktop breakpoints without loss of function.
+  evidence: Observed at each breakpoint.
+
+security:
+  requires: Input validated, output encoded, authz enforced server-side, no secret exposure.
+  evidence: Checklist walked against the changed surface.
+
+threat_model:
+  requires: Attacker goals, entry points, trust boundaries, mitigations, residual risk.
+  evidence: Written model in the decision record.
+
+data_privacy:
+  requires: Personal data classified, minimised, retention stated, access controlled.
+  evidence: Data inventory delta.
+
+data_integrity:
+  requires: Constraints, transactions, and invariants preserved under concurrency and failure.
+  evidence: Invariants listed and how each is enforced.
+
+migration_safety:
+  requires: Forward migration is reversible or has a stated recovery path; safe on non-empty data.
+  evidence: Dry run against representative data volume.
+
+rollback:
+  requires: A specific, tested way back.
+  evidence: Rollback steps, and what data is lost if executed.
+
+backup_recovery:
+  requires: Recovery point and recovery time stated for affected data.
+  evidence: Where backups live and how restore is proven.
+
+idempotency:
+  requires: Retried operations do not double-apply.
+  evidence: Retry key or dedupe mechanism named.
+
+audit_trail:
+  requires: Who did what, when, immutably recorded for sensitive operations.
+  evidence: Log schema and retention.
+
+observability:
+  requires: Logs, metrics, and error tracking sufficient to diagnose in production without a debugger.
+  evidence: Signals emitted and the question each answers.
+
+reliability:
+  requires: Timeouts, retries with backoff, circuit breaking, graceful degradation.
+  evidence: Failure mode table.
+
+performance:
+  requires: Meets the non-functional budget in .ai/project.md.
+  evidence: Measured baseline and measured result.
+
+measured_baseline:
+  requires: The "before" number, captured before any change.
+  evidence: Command and figure.
+
+measured_after:
+  requires: The "after" number, same method.
+  evidence: Command and figure.
+
+correctness_preserved:
+  requires: Optimisation changed speed, not behaviour.
+  evidence: Same tests passing pre and post.
+
+api_contract_stability:
+  requires: Contract documented; consumers identified.
+  evidence: Contract diff and consumer list.
+
+backward_compatibility:
+  requires: Existing clients keep working, or a versioned migration path exists.
+  evidence: Compatibility statement.
+
+supply_chain_security:
+  requires: New dependency is maintained, non-malicious, and pinned.
+  evidence: Age, maintenance signal, advisory scan result.
+
+licence_compliance:
+  requires: Licence compatible with the project's stated distribution model.
+  evidence: Licence recorded per new dependency.
+
+secrets_handling:
+  requires: No secret in code, logs, history, or client bundles. Externalised config only.
+  evidence: Scan result and config location.
+
+cost:
+  requires: Recurring cost impact estimated before provisioning.
+  evidence: Unit cost and expected volume.
+
+cost_control:
+  requires: AI/API spend bounded by limits, caching, and model tiering.
+  evidence: Limits configured and where.
+
+latency:
+  requires: Response time budget stated and met, including worst case.
+  evidence: p50 and p95 measured.
+
+output_quality_evaluation:
+  requires: A repeatable evaluation set for AI outputs, not vibes.
+  evidence: Eval cases and pass rate.
+
+hallucination_risk:
+  requires: Grounding, citation, or refusal behaviour where the model may invent.
+  evidence: Failure examples and handling.
+
+prompt_injection_resistance:
+  requires: Untrusted content treated as data; tool actions gated.
+  evidence: Injection attempt and observed refusal.
+
+fallback_behaviour:
+  requires: Defined behaviour when the model or API is unavailable or slow.
+  evidence: Fallback path exercised.
+
+disaster_recovery:
+  requires: Stated RTO/RPO and a rehearsed path for total component loss.
+  evidence: Runbook reference.
+
+compliance:
+  requires: Applicable regimes in .ai/project.md are satisfied by this change.
+  evidence: Control mapped to implementation.
+
+regression_testing:
+  requires: The specific past failure cannot recur silently.
+  evidence: Test that fails without the fix.
+
+root_cause_identified:
+  requires: The cause, not the symptom, with the mechanism explained.
+  evidence: Written cause and why it produced the symptom.
+
+related_occurrences_checked:
+  requires: Same defect pattern searched for elsewhere in the codebase.
+  evidence: Search performed and result.
+
+breaking_change_risk:
+  requires: Breaking changes identified and communicated.
+  evidence: List, or explicit none.
+
+fabrication_replacement_plan:
+  requires: Every fabrication introduced has an owner task and replacement condition.
+  evidence: Registry entries linked to task ids.
+
+requirements_captured:
+  requires: Users, jobs, scope, out-of-scope, and success measures written down.
+  evidence: .ai/project.md section.
+
+non_functional_requirements_quantified:
+  requires: Numbers, not adjectives — latency, throughput, volume, concurrency, uptime, retention.
+  evidence: .ai/project.md constraints table.
+
+technology_decision_recorded:
+  requires: Stack chosen against constraints, alternatives and tradeoffs recorded.
+  evidence: Decision record.
+
+architecture_recorded:
+  requires: Components, boundaries, data flow, and extension points documented.
+  evidence: Architecture document.
+
+project_constitution_written:
+  requires: .ai/project.md exists and is authoritative.
+  evidence: File present and complete.

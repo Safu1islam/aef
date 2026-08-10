@@ -1,0 +1,44 @@
+# .ai/state/tasks.yaml — the coordination substrate.
+# Any agent, any model, any session reads this to know what to do next.
+
+task:
+  id: T-001                       # stable, never reused
+  title: string
+  objective: string               # the goal, not the requested solution
+  change_class: string            # key from config/routing.yaml
+  mode: fast|standard|critical
+  owner_role: string
+  assigned_model_tier: frontier|standard|economy
+  status: ready|claimed|blocked|in_review|complete|abandoned
+  claimed_by: agent-session-id|null
+  claimed_at: iso8601|null
+
+  depends_on: [T-000]
+  blocks: [T-002]
+
+  owned_paths: [src/auth/**]      # exclusive write scope
+  read_paths: [src/db/**]
+
+  acceptance_criteria:
+    - id: AC-1
+      statement: observable behaviour
+      result: PASSED|FAILED|NOT_RUN
+      evidence: string
+
+  required_dimensions: [correctness, security, testing]
+
+  verification:
+    - command: string
+      status: PASSED|FAILED|NOT_AVAILABLE|NOT_RUN|BLOCKED|NEEDS_HUMAN
+      observed: string
+
+  review:
+    - reviewer_role: string
+      finding: string
+      severity: BLOCKING|IMPORTANT|OPTIONAL
+      resolved: bool
+
+  fabrications_introduced: [F-003]
+  assumptions: [string]
+  decisions: [DR-002]
+  checkpoint: string              # resume point if interrupted

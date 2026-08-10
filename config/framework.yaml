@@ -1,0 +1,62 @@
+# AEF framework defaults.
+# Projects override in .ai/config/overrides.yaml — never edit this file.
+# Deep-merge: project keys replace framework keys of the same path.
+
+version: 0.1.0
+
+autonomy:
+  # How far an agent may go before returning to the human.
+  # solo   = complete whole task graphs, report at the end
+  # staged = stop at stage boundaries defined in checkpoint_gates
+  # tight  = confirm before each task
+  default_level: solo
+  checkpoint_gates: [technology_selection, plan_approved, pre_production]
+  max_consecutive_tasks: 25
+  ask_only_if: [undiscoverable, materially_changes_outcome, in_escalation_list]
+
+context:
+  always_loaded: [core/CONSTITUTION.md]
+  read_budget_files: 25          # per task, before Implement
+  memory_index_max_lines: 120
+  session_max_tasks: 8           # then checkpoint and start a fresh session
+  degradation_guard: true        # long sessions degrade; prefer fresh + state files
+  never_reread: [node_modules, vendor, dist, build, .git, lockfiles]
+
+models:
+  # Role/stage -> capability tier. Concrete model names live in the adapter.
+  tiers:
+    frontier: [technology_selection, architecture, planning, critical_review, threat_model]
+    standard: [implementation, code_review, verification, discovery]
+    economy:  [formatting, doc_sync, state_updates, lint_fixes, routine_commits]
+  escalate_on: [repeated_failure, blocking_finding, safety_relevant_change]
+
+execution:
+  parallel: true
+  max_parallel_agents: 4
+  require_file_locks: true
+  lock_ttl_minutes: 90           # stale locks may be reclaimed after this
+  conflict_policy: take_other_ready_task
+
+quality:
+  # Which dimensions are mandatory is computed from routing.yaml.
+  fabrication_policy: register_or_fail
+  block_completion_on_unresolved_fabrications: true
+  independent_review_required: true
+  self_review_counts_as_review: false
+  acceptance_criteria_before_implementation: true
+
+verification:
+  statuses: [PASSED, FAILED, NOT_AVAILABLE, NOT_RUN, BLOCKED, NEEDS_HUMAN]
+  claim_requires_execution: true
+  create_missing_checks: true
+
+git:
+  attribution_trailer: true
+  commit_granularity: per_task
+  branch_pattern: "aef/{task_id}-{slug}"
+
+skills:
+  generate_project_skills: true
+  generate_after: [discovery, repeated_procedure_detected]
+  repetition_threshold: 3        # same procedure 3x -> extract a skill
+  prune_unused_after_days: 90

@@ -59,12 +59,18 @@ is nowhere to be vague.
 
 ## Quickstart
 
+Copy the framework into your project — it travels with the repository, so a
+fresh clone already has its governance layer.
+
 ```bash
-git submodule add https://github.com/<owner>/aef aef
-git -C aef checkout v0.1.0
+git clone --depth 1 https://github.com/Safu1islam/aef aef && rm -rf aef/.git
 cp aef/adapters/CLAUDE.md .        # or AGENTS.md, .cursorrules, GEMINI.md
 mkdir -p .ai/state/decisions .ai/memory/domains .ai/config
 ```
+
+`aef/` is read-only from then on: configure through `.ai/config/overrides.yaml`,
+and upgrade by replacing the directory. Full options and the project layout are
+in [`install/BOOTSTRAP.md`](install/BOOTSTRAP.md).
 
 Then, in your agent tool:
 
@@ -95,13 +101,24 @@ docs/        why, concepts, quickstart, AI review request
 
 ## Status and honest gaps
 
-v0.1.0. What it has not yet earned:
+v0.4.0. What it has earned since 0.1.0: a plan tree with derived progress, a
+dashboard, agent assignment, live multi-agent coordination, and 109 tests that
+are proven able to fail by sabotage rather than merely asserted.
 
-- No automated validator. Compliance currently depends on the agent following the
-  standard, which is exactly the assumption the standard exists to avoid. Planned for 0.2.0.
-- Not battle-tested against a large legacy repository.
-- Routing classes cover common web, service, and AI work. Specialised domains — embedded,
-  games, data engineering, scientific computing — need contributed classes.
+What it has **not** earned:
+
+- **Partial enforcement only.** `aef.py validate` checks the plan against the
+  task graph, and the coordination checks report drift between state files.
+  Nothing mechanically prevents an agent writing `PASSED` for a check it never
+  ran. The standard raises the cost of dishonesty; it does not make it impossible.
+- **Not battle-tested against a large legacy repository.** It has been run
+  against one real project, continuously, by a small number of agents.
+- **No genuinely heterogeneous fleet.** The coordination layer is designed to be
+  vendor-neutral and nothing in it branches on vendor or model, but four agents
+  from four vendors coordinating through these files has not been run.
+- **Routing classes cover common web, service, and AI work.** Specialised
+  domains — embedded, games, data engineering, scientific computing — need
+  contributed classes.
 
 ## Contributing
 

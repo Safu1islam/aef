@@ -4,14 +4,20 @@ Ten minutes. Works with any agent tool.
 
 ## 1. Add the framework
 
+Copy it into your project. The framework travels with the repository, so a fresh
+clone already has it.
+
 ```bash
 cd your-project
-git submodule add https://github.com/<owner>/aef aef
-git -C aef checkout v0.1.0
+git clone --depth 1 https://github.com/Safu1islam/aef aef && rm -rf aef/.git
 ```
 
-No submodules? Copy the directory in and record the version. The only hard rule is
-that `aef/` is never edited inside your project.
+Prefer a submodule, so upgrades are an explicit pin bump? That works too — see
+[`install/BOOTSTRAP.md`](../install/BOOTSTRAP.md) for the trade-off.
+
+The only hard rule is that `aef/` is **never edited** inside your project.
+Configure through `.ai/config/overrides.yaml`; upgrade by replacing the
+directory and reading the changelog.
 
 ## 2. Create the project layer
 

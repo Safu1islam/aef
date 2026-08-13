@@ -2,18 +2,45 @@
 
 Run once per project. Creates the mutable project layer and wires up the tools.
 
-## 1. Attach the framework (read-only, pinned)
+## 1. Copy the framework into your project (read-only)
+
+**Copy it in. That is the normal installation.** The framework travels *with*
+the project, so a fresh clone of your repository already carries its governance
+layer — no second fetch, and no way for an agent to start work without one.
 
 ```
-git submodule add <framework-repo-url> aef
-git -C aef checkout v0.3.0
+git clone --depth 1 https://github.com/Safu1islam/aef aef
+rm -rf aef/.git
 ```
 
-Any copy works, provided `aef/VERSION` is recorded and `aef/` is never edited.
+Or take a release archive if you want a fixed version:
 
-Pin the current release. Checking out an older tag is a deliberate choice, not a
-default — 0.1.x has no plan tree and no tooling, so a project pinned there
-cannot run steps 5 or 6 of this file at all.
+```
+curl -L https://github.com/Safu1islam/aef/archive/refs/tags/v0.4.0.tar.gz | tar xz
+mv aef-0.4.0 aef
+```
+
+Either way `aef/` becomes an ordinary directory inside your project, committed
+to your repository like any other file.
+
+A submodule also works, if you would rather upgrades be an explicit pin bump:
+
+```
+git submodule add https://github.com/Safu1islam/aef aef
+```
+
+The cost is real, so choose deliberately: every clone then needs
+`git submodule update --init`, and a session that skips it finds an empty `aef/`
+and runs with no constitution at all.
+
+Whichever you choose:
+
+- **Record what you installed.** `aef/VERSION` is the pin.
+- **Never edit anything under `aef/`.** Configure through
+  `.ai/config/overrides.yaml`, which deep-merges over the framework defaults.
+- **Upgrade by replacing the directory** and reading `CHANGELOG.md` — never by
+  editing in place. Anything below 0.2.0 has no plan tree and no tooling, so a
+  project on it cannot run steps 5 or 6 of this file at all.
 
 ## 2. Create the project layer
 

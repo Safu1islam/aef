@@ -3,6 +3,30 @@
 All notable changes to AEF are recorded here.
 Versions follow semantic versioning. Projects pin a version; upgrades are deliberate.
 
+## [0.4.1] — 2026-08-13
+
+Install instructions, which were wrong for the primary audience.
+
+### Fixed
+- `install/BOOTSTRAP.md` and `docs/QUICKSTART.md` led with `git submodule add`
+  against a `<owner>` placeholder, and told the reader to check out **v0.1.0**
+  and **v0.3.0** respectively. Anyone following either got a framework with no
+  plan tree and no tooling, from a URL that does not resolve
+- Both now lead with **copying the framework into the project**, which is how it
+  is meant to be installed: `aef/` travels with the repository, so a fresh clone
+  already carries its governance layer and no session can start without one.
+  The submodule route is kept, with its real cost stated — every clone needs
+  `git submodule update --init`, and a session that skips it runs with no
+  constitution at all
+- `README.md` status section still described v0.1.0 and promised a validator
+  "planned for 0.2.0" that shipped three releases ago. Rewritten to state what
+  0.4.0 actually earned, and what it still has not
+
+### Note
+Cut as a patch release rather than by moving the v0.4.0 tag. A published tag
+that changes underneath its consumers is the same class of problem as a state
+file with two sources of truth.
+
 ## [0.4.0] — 2026-08-13
 
 From a governance framework for one agent to a coordination substrate for

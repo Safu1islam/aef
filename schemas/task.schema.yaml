@@ -1,17 +1,39 @@
 # .ai/state/tasks.yaml — the coordination substrate.
 # Any agent, any model, any session reads this to know what to do next.
+#
+# This file is the AUTHORITY ON STATUS. The plan tree in .ai/state/plan.yaml
+# (schemas/plan.schema.yaml) references these tasks and supplies structure,
+# weight and agent — it never restates status, and nothing derived from status
+# is stored in either file. See plan.schema.yaml for why.
 
 task:
   id: T-001                       # stable, never reused
   title: string
   objective: string               # the goal, not the requested solution
-  change_class: string            # key from config/routing.yaml
+  change_class: string            # key from config/routing.yaml.
+                                  # Also the strongest basis for automatic agent
+                                  # assignment (protocols/09) — a task without
+                                  # one gets a weak keyword guess instead.
   mode: fast|standard|critical
   owner_role: string
   assigned_model_tier: frontier|standard|economy
-  status: ready|claimed|blocked|in_review|complete|abandoned
+  agent: string                   # OPTIONAL. Catalogue id from config/agents.yaml.
+                                  # The plan node is the normal place to assign;
+                                  # set it here only for a task with no node yet.
+  status: ready|claimed|blocked|in_review|complete|failed|abandoned
+                                  # `failed` added in 0.2.0: a task that was
+                                  # attempted and did not succeed is not the same
+                                  # as one nobody has started, and a dashboard
+                                  # that cannot tell them apart is misleading.
+                                  # `abandoned` means deliberately dropped; it
+                                  # displays under Failed rather than vanishing,
+                                  # because deleting it would flatter the
+                                  # completion percentage.
   claimed_by: agent-session-id|null
   claimed_at: iso8601|null
+  blocked_reason: string          # required when status is blocked or failed.
+                                  # Surfaced verbatim on the dashboard, so write
+                                  # it for the person who has to unblock it.
 
   depends_on: [T-000]
   blocks: [T-002]

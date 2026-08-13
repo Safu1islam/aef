@@ -1,0 +1,122 @@
+# .ai/state/plan.yaml — the project plan as a tree.
+#
+# Written by protocol 04. Read by every agent, and by aef/tools/aef.py.
+#
+# ---------------------------------------------------------------------------
+# THE ONE RULE THIS SCHEMA EXISTS TO ENFORCE
+# ---------------------------------------------------------------------------
+# One authority per fact.
+#
+#   structure, weight, agent   ->  plan.yaml   (this file)
+#   task status and evidence   ->  tasks.yaml
+#   group status, percentages  ->  DERIVED on read, stored NOWHERE
+#
+# A grouping node has no `status:` of its own and must never be given one. Its
+# status is computed from its children every time it is read. The moment a
+# rolled-up status is written down, there are two answers to "is this done?" and
+# the stored one starts rotting immediately.
+#
+# `python aef/tools/aef.py validate` enforces the seam between the two files:
+# every task in tasks.yaml must appear as exactly one leaf here, and every leaf
+# that names a task must name one that exists. It exits non-zero otherwise, so
+# it is usable as a gate.
+
+meta:
+  plan_version: int               # bump when the plan is restructured
+  schema_version: 1
+  project: string
+  aef_version: string             # the framework version this plan was written for
+  planned_at: date
+  planned_by_role: analyst
+  mode: fast|standard|critical    # from routing.yaml, as in tasks.yaml
+
+  # Protocol 04 forbids a silently partial plan. The planner states coverage
+  # rather than letting an unstated gap read as "nothing to do".
+  completeness:
+    declared_complete: bool
+    basis: string                 # WHY the planner believes the plan is complete
+    known_omissions: [string]     # in scope, deliberately unplanned, with reasons
+
+tree:
+  # Exactly one root, of type `project`.
+  id: string                      # unique across the whole tree; never reused
+  type: project|section|feature|task|subtask
+  title: string
+  children: [node]
+
+# ---------------------------------------------------------------------------
+# node
+# ---------------------------------------------------------------------------
+node:
+  id: string                      # unique across the tree
+  type: section|feature|task|subtask
+  title: string                   # what this is, in the reader's language
+
+  children: [node]                # a node with children is a GROUP
+                                  # a node without children is a LEAF
+
+  # LEAVES ONLY -------------------------------------------------------------
+  task: T-000                     # link to a task in tasks.yaml.
+                                  # The linked task is the authority on this
+                                  # leaf's status, and on its dependencies —
+                                  # the leaf inherits the task's depends_on
+                                  # rather than restating it.
+
+  status: string                  # ONLY for a leaf with no linked task, i.e. a
+                                  # subtask finer than tasks.yaml tracks.
+                                  # Ignored entirely on a linked leaf.
+                                  # IGNORED ON GROUPS — see the rule above.
+
+  # ANY NODE ----------------------------------------------------------------
+  agent: string                   # id from aef/config/agents.yaml.
+                                  # Set on a group, it is the default for the
+                                  # whole subtree; an explicit child wins.
+  agent_locked: bool              # true = assigned by a human. `assign --auto`
+                                  # will not overwrite it. This is the only
+                                  # thing separating a decision from a guess.
+
+  weight: number                  # default 1. Relative size for the percentage.
+                                  # Use sparingly: uniform weights are honest
+                                  # about uncertainty, and invented weights make
+                                  # the percentage look more precise than it is.
+
+  depends_on: [string]            # node ids or task ids. A pending node whose
+                                  # dependencies are unmet reports
+                                  # `waiting_dependency` rather than `pending`,
+                                  # so "not started" and "cannot start" are
+                                  # distinguishable at a glance.
+
+  note: string                    # shown on the dashboard for blocked/failed
+                                  # nodes. Say why, not what.
+
+# ---------------------------------------------------------------------------
+# Derived status vocabulary — what the dashboard and `aef progress` display.
+# Not written anywhere. Produced by aef/tools/aefkit/model.py.
+# ---------------------------------------------------------------------------
+derived_status:
+  complete: Every leaf beneath it is complete.
+  in_progress: Something is claimed, in review, or partly done.
+  blocked: Held up by something external; nothing beneath is moving.
+  waiting_dependency: Ready in itself, but a dependency is not complete.
+  failed: A leaf beneath it failed or was abandoned.
+  pending: Not started, and nothing prevents starting it.
+
+# tasks.yaml status -> derived status
+status_mapping:
+  ready: pending                  # or waiting_dependency, if depends_on is unmet
+  claimed: in_progress
+  in_review: in_progress
+  blocked: blocked
+  complete: complete
+  failed: failed
+  abandoned: failed               # abandoned work is not finished work
+
+# Rollup precedence for a group, worst news first, with one exception: any
+# progress at all outranks `pending`, so a half-finished section never reads as
+# untouched.
+rollup_precedence: [failed, in_progress, blocked, waiting_dependency, pending]
+
+# The percentage is complete-weight over total-weight, counted across LEAVES
+# only. Grouping nodes are not work; counting them would let a deeply nested
+# plan report a different percentage from a flat one describing the same tasks.
+percentage: sum(weight of complete leaves) / sum(weight of all leaves)

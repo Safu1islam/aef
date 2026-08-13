@@ -1,0 +1,149 @@
+# Agent catalogue and automatic assignment rules.
+#
+# This file is DATA, for the same reason routing.yaml is: it is what stops each
+# orchestrator inventing its own idea of who should do what.
+#
+# An AGENT is an assignable unit of work capacity. A ROLE is a contract
+# (aef/roles/*.md). An agent occupies exactly one role; several agents may
+# occupy the same role with different specialisms. Roles stay few and stable —
+# adding an agent here does NOT add a role, and must not.
+#
+# Assignment answers one question only: who IMPLEMENTS this task. Who REVIEWS it
+# is answered by routing.yaml, per change class, and the two must not be the same
+# agent — Constitution section 7. `aef plan assign` refuses an assignment that
+# would make an agent the reviewer of its own work.
+#
+# Projects extend or replace any of this in .ai/config/overrides.yaml under the
+# top-level `agents:` key. Deep-merged, same as framework.yaml.
+
+version: 0.2.0
+
+# ---------------------------------------------------------------------------
+# The catalogue. `id` is what appears in .ai/state/plan.yaml and the dashboard.
+# ---------------------------------------------------------------------------
+agents:
+
+  planner:
+    role: analyst
+    capabilities: [requirements, acceptance_criteria, planning, decomposition, estimation]
+    tier: frontier
+    does: Intake, requirements, acceptance criteria, and the A-to-Z plan itself.
+
+  architect:
+    role: architect
+    capabilities: [architecture, technology_selection, interface_design, data_modeling, tradeoff_analysis]
+    tier: frontier
+    does: Technology selection, structure, interface contracts, decision records.
+
+  implementer:
+    role: implementer
+    capabilities: [general_implementation, refactoring, debugging]
+    tier: standard
+    does: General implementation. The fallback when no specialism applies.
+
+  frontend-agent:
+    role: implementer
+    capabilities: [ui, layout, styling, client_state, accessibility, responsive_design, browser_testing]
+    tier: standard
+    specialism: [ui, layout, styling, client state, accessibility]
+    does: User-facing surfaces.
+
+  backend-agent:
+    role: implementer
+    capabilities: [api, data_modeling, migration, query_optimisation, service_logic, error_handling]
+    tier: standard
+    specialism: [api, handler, schema, migration, query, service]
+    does: Operations, data model, and server-side logic.
+
+  infra-agent:
+    role: implementer
+    capabilities: [deployment, pipeline, containerisation, environment_config, dependency_management, rollback]
+    tier: standard
+    specialism: [deploy, pipeline, container, environment, dependency]
+    does: Build, deployment, and dependency changes.
+
+  security-agent:
+    role: implementer
+    capabilities: [security_analysis, threat_modeling, auth, secrets_handling, access_control, code_review]
+    tier: frontier
+    specialism: [auth, session, token, access control, secrets, payment]
+    does: >
+      Implements work whose failure mode is a breach or a loss of money. Frontier
+      tier is deliberate: this is the class where a plausible-looking wrong
+      answer is most expensive.
+
+  reviewer-agent:
+    role: reviewer
+    capabilities: [code_review, architecture_review, security_analysis, maintainability_review]
+    tier: standard
+    does: Independent code, security and architecture review. Never reviews its own work.
+
+  test-agent:
+    role: verifier
+    capabilities: [test_design, test_execution, coverage_analysis, regression_protection, falsification]
+    tier: standard
+    does: Executes checks and reports honest status. Writes tests that can fail.
+
+  qa-agent:
+    role: human-experience-reviewer
+    capabilities: [human_experience, persona_testing, usability_review, accessibility, workflow_validation]
+    tier: standard
+    does: Uses the product as each persona. Independent of whoever built it.
+
+# ---------------------------------------------------------------------------
+# Automatic assignment. First match wins, strongest evidence first.
+# ---------------------------------------------------------------------------
+assignment:
+
+  # 1. STRONGEST. The task's change_class, which routing.yaml already made the
+  #    basis of mode and reviewers. Reusing it here keeps one classification
+  #    driving everything rather than two that can disagree.
+  by_change_class:
+    copy_or_content: frontend-agent
+    ui_change: frontend-agent
+    api_change: backend-agent
+    data_model_change: backend-agent
+    auth_or_permissions: security-agent
+    money_or_payments: security-agent
+    ai_feature: backend-agent
+    infrastructure: infra-agent
+    dependency_change: infra-agent
+    performance_work: backend-agent
+    bug_fix: implementer
+    new_project: architect
+
+  # 2. The task's declared owner_role, when change_class is absent or maps to
+  #    nothing. A task that already names a role has been classified by a human
+  #    or by an earlier protocol stage; respect it.
+  by_owner_role:
+    analyst: planner
+    architect: architect
+    implementer: implementer
+    reviewer: reviewer-agent
+    verifier: test-agent
+    human-experience-reviewer: qa-agent
+    orchestrator: planner
+    domain-steward: planner
+
+  # 3. WEAKEST, and explicitly marked as such in the assignment reason so a
+  #    human reading the dashboard can see the assignment rested on a word in a
+  #    title rather than on a classification. Only consulted when 1 and 2 both
+  #    fail. Never overrides them.
+  by_title_keyword:
+    frontend-agent: [ui, page, screen, form, layout, css, template, dashboard, view]
+    backend-agent: [api, endpoint, schema, database, migration, query, operation, registry]
+    infra-agent: [deploy, ci, pipeline, docker, package, build, release]
+    security-agent: [auth, token, secret, credential, permission, lock, audit]
+    test-agent: [test, coverage, verification, parity, regression]
+    qa-agent: [usability, walkthrough, persona, human-experience]
+
+  # 4. Nothing matched. Left unassigned and shown as such — an invented
+  #    assignment is worse than a visible gap, because it looks decided.
+  fallback: null
+
+constraints:
+  # Constitution section 7, mechanised.
+  reviewer_must_differ_from_implementer: true
+  # An agent holding this many in-progress leaves is reported as saturated in the
+  # dashboard. Advisory: it colours a badge, it does not refuse an assignment.
+  advisory_wip_limit: 3

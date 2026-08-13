@@ -36,6 +36,12 @@ execution:
   require_file_locks: true
   lock_ttl_minutes: 90           # stale locks may be reclaimed after this
   conflict_policy: take_other_ready_task
+  # 0.4.0. How long a session's heartbeat stays fresh before it reads as stale.
+  # DELIBERATELY MUCH SHORTER than lock_ttl_minutes, because the two answer
+  # different questions: a lock is work-sized ("may I write this path"), a
+  # heartbeat is liveness ("am I still running"). 0.3.0 derived liveness from
+  # lock TTL, which meant a crashed agent looked busy for 90 minutes.
+  heartbeat_stale_minutes: 15
 
 quality:
   # Which dimensions are mandatory is computed from routing.yaml.

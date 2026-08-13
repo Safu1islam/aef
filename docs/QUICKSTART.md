@@ -6,7 +6,7 @@ Ten minutes. Works with any agent tool.
 
 ```bash
 cd your-project
-git submodule add https://github.com/Safu1islam/aef aef
+git submodule add https://github.com/<owner>/aef aef
 git -C aef checkout v0.1.0
 ```
 

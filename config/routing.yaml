@@ -32,11 +32,13 @@ classes:
 
   copy_or_content:
     match: [text change, label, wording, translation, static content]
+    requires_capabilities: [ui, human_experience]
     mode: fast
     dimensions: [correctness, human_experience, accessibility]
 
   ui_change:
     match: [component, layout, styling, page, client state]
+    requires_capabilities: [ui, layout, accessibility, client_state]
     mode: standard
     implementers: [implementer]
     reviewers: [reviewer, human_experience_reviewer]
@@ -44,12 +46,14 @@ classes:
 
   api_change:
     match: [endpoint, handler, contract, request/response shape]
+    requires_capabilities: [api, error_handling, interface_design]
     mode: standard
     reviewers: [reviewer, verifier]
     dimensions: [correctness, api_contract_stability, backward_compatibility, error_handling, observability, security, documentation, testing]
 
   data_model_change:
     match: [schema, migration, index, entity, relation]
+    requires_capabilities: [data_modeling, migration, api]
     mode: critical
     implementers: [implementer]
     reviewers: [architect, reviewer, verifier]
@@ -57,23 +61,27 @@ classes:
 
   auth_or_permissions:
     match: [authentication, authorization, session, role, token, access control]
+    requires_capabilities: [auth, security_analysis, threat_modeling, access_control]
     mode: critical
     reviewers: [architect, reviewer, verifier, human_experience_reviewer]
     dimensions: [correctness, security, threat_model, data_privacy, error_handling, observability, testing, human_experience, audit_trail]
 
   money_or_payments:
     match: [payment, billing, invoice, subscription, order, trade execution]
+    requires_capabilities: [security_analysis, auth, data_modeling, error_handling]
     mode: critical
     dimensions: [correctness, security, data_integrity, idempotency, audit_trail, error_handling, rollback, observability, compliance, testing]
 
   ai_feature:
     match: [llm, prompt, embedding, rag, agent, model call, inference]
+    requires_capabilities: [api, service_logic, security_analysis]
     mode: standard
     reviewers: [reviewer, verifier]
     dimensions: [correctness, output_quality_evaluation, hallucination_risk, prompt_injection_resistance, cost_control, latency, fallback_behaviour, observability, testing, documentation]
 
   infrastructure:
     match: [deploy, pipeline, container, terraform, environment, dns, scaling]
+    requires_capabilities: [deployment, pipeline, environment_config, rollback]
     mode: critical
     reviewers: [architect, reviewer]
     dimensions: [correctness, reliability, rollback, secrets_handling, cost, observability, disaster_recovery, documentation]

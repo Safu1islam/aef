@@ -1,0 +1,107 @@
+# .ai/state/sessions.yaml — who is here right now.
+#
+# THE ONE THING THIS FILE OWNS: liveness. Which agent processes exist, what each
+# is doing, and when it last said so.
+#
+# It does NOT own:
+#   path ownership  -> locks.yaml       (may I write this file)
+#   task status     -> tasks.yaml       (is the work done)
+#   structure       -> plan.yaml        (what the work is)
+#   assignment      -> plan.yaml        (whose lane this is)
+#
+# Why this is separate from locks.yaml, which 0.3.0 used for the same purpose:
+# a lock answers "may I write this path" and its TTL is work-sized (90 minutes,
+# framework.yaml execution.lock_ttl_minutes). A heartbeat answers "am I still
+# alive" and is minutes. Deriving liveness from a lock meant a crashed agent
+# looked busy for up to 90 minutes. Both signals are real; they are not the same
+# signal, and one file cannot carry two TTLs honestly.
+#
+# EVERYTHING DERIVED FROM THIS FILE IS COMPUTED ON READ:
+#   agent status (working / idle / stale / blocked)
+#   who holds the main_engineer assignment, and whether it is vacant
+#   per-agent live workload
+#   stale claims (a live lock whose session is dead)
+# None of those is written anywhere.
+
+sessions:
+
+  - id: session-2026-08-13-a1        # unique, stable for the session's life.
+                                     # Convention: <tool>-<date>-<short-random>.
+                                     # It identifies a PROCESS, not a person and
+                                     # not a model.
+    agent: backend-agent             # catalogue id from config/agents.yaml.
+                                     # Must exist there; the tools refuse an
+                                     # unknown id rather than accept a typo that
+                                     # reads as a real agent.
+    role: implementer                # one of the seven. Derived from the agent's
+                                     # catalogue entry when omitted.
+
+    vendor: anthropic                # OPTIONAL, descriptive. Reporting only.
+    model: claude-opus-5             # OPTIONAL, descriptive. Reporting only.
+                                     # NOTHING in the framework branches on
+                                     # either. Vendor neutrality is structural,
+                                     # not a promise.
+
+    # The Main Engineer assignment (protocols/10). At most one session may hold
+    # it; a second claim is refused and reported. Absent or false on every
+    # session means the post is VACANT, which is a visible state rather than a
+    # silently inherited one.
+    main_engineer: false
+
+    task: T-042                      # OPTIONAL. The task this session is working.
+                                     # Must exist in tasks.yaml. A session with
+                                     # no task is idle, which is legitimate —
+                                     # the Main Engineer usually has none.
+
+    activity: >                      # One line, human-readable, present tense.
+      Implementing the reservation ledger's expiry reclaim path.
+
+    status: working                  # working | idle | blocked | ended
+                                     # `stale` is NEVER written here. It is
+                                     # DERIVED from heartbeat age, because a
+                                     # crashed process cannot write its own
+                                     # obituary. A file that could record its own
+                                     # staleness would be the one file guaranteed
+                                     # not to.
+
+    blocked_reason: string           # required when status is blocked. Surfaced
+                                     # verbatim on the dashboard, so write it for
+                                     # whoever has to unblock it.
+
+    started_at: "2026-08-13T03:40:00+04:00"
+    heartbeat_at: "2026-08-13T04:05:00+04:00"
+                                     # Refreshed by `aef.py session heartbeat`.
+                                     # Staleness threshold:
+                                     # framework.yaml execution.heartbeat_stale_minutes
+
+    # Written when the session ends. This IS the handoff — there is no separate
+    # handoff file, because a handoff is what a session leaves behind, and
+    # splitting it into its own store would create a second place to look for
+    # "what happened to that work".
+    #
+    # Compact by contract (mandate 17): what the next agent needs, not a
+    # transcript. Anything longer belongs in the task record or domain memory,
+    # and is referenced from here by id.
+    handoff:
+      ended_at: "2026-08-13T05:10:00+04:00"
+      outcome: completed             # completed | paused | failed | superseded
+      changed: >
+        src/storage/ledger.py — reclaim() now scoped to 'reserved' rows.
+      evidence:                      # references, not output. Point at the task.
+        - "tasks.yaml T-042 verification[0] — 231 passed"
+      remaining: >
+        Multi-process contention is NOT_RUN; single-interpreter only.
+      risks: >
+        LedgerDrift raises where it previously logged. Callers unaudited.
+      next: >
+        T-043 can start; it depends on nothing this task left open.
+      references: [DR-006, T-042]
+
+# ---------------------------------------------------------------------------
+# ENDED SESSIONS
+#
+# A session with status `ended` is history. Keep the most recent few for the
+# activity view and prune the rest — this file is an operational register, not
+# an audit log. Durable narrative belongs in the task record, the decision
+# record, or domain memory, all of which outlive it.
+# ---------------------------------------------------------------------------

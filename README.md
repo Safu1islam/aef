@@ -60,7 +60,7 @@ is nowhere to be vague.
 ## Quickstart
 
 ```bash
-git submodule add https://github.com/Safu1islam/aef aef
+git submodule add https://github.com/<owner>/aef aef
 git -C aef checkout v0.1.0
 cp aef/adapters/CLAUDE.md .        # or AGENTS.md, .cursorrules, GEMINI.md
 mkdir -p .ai/state/decisions .ai/memory/domains .ai/config

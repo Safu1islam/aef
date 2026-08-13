@@ -1,0 +1,96 @@
+# .ai/state/recommendations.yaml — proposals nobody has authorised yet.
+#
+# THE PROBLEM THIS SOLVES: an agent working task T-042 notices that the caching
+# strategy is wrong. It has three bad options and one good one.
+#
+#   fix it        -> silent scope expansion, unreviewed risk, and a diff nobody
+#                    asked for. Two agents can now be in the same file.
+#   ignore it     -> the finding dies with the session.
+#   stop and ask  -> blocks assigned work on an unrelated question.
+#   RECORD IT     -> the finding becomes project knowledge, the agent continues,
+#                    and whoever holds authority decides later.
+#
+# Constitution section 5 is "inspect, infer, implement, ask last". This file is
+# how an agent contributes beyond its task WITHOUT either asking or overreaching.
+#
+# RECOMMENDATION IS NOT PERMISSION. Recording one confers no authority to act on
+# it. Acceptance does that, and acceptance produces a task.
+
+recommendations:
+
+  - id: R-001                        # stable, never reused.
+    title: string                    # one line. The proposal, not the problem.
+
+    raised_by: session-2026-08-13-a1 # the SESSION that found it. Sessions are
+                                     # ephemeral, which is the point: the finding
+                                     # must outlive the finder.
+    raised_by_agent: backend-agent   # catalogue id, so the source survives after
+                                     # the session is pruned.
+    during_task: T-042               # OPTIONAL. What it was doing when it noticed.
+                                     # Establishes that this was a side-finding
+                                     # rather than assigned work.
+    raised_at: "2026-08-13T04:20:00+04:00"
+
+    recommendation: >
+      What to do. Specific enough to be actionable by someone who was not there.
+
+    reason: >
+      Why. The evidence, not the intuition. "Slow" is not a reason; a measurement
+      is. If the basis is a hunch, say that plainly — a flagged hunch is useful
+      and an unflagged one is noise.
+
+    expected_benefit: >
+      What improves, and by how much where that can be stated.
+
+    risk: >
+      What could go wrong if this IS done. A recommendation with no stated risk
+      has usually not been thought through.
+
+    affected_components: [src/storage/ledger.py, src/ingest/pipeline.py]
+                                     # Paths or subsystem names. Used to warn a
+                                     # future agent that an open proposal touches
+                                     # the area it is about to change.
+
+    severity: important              # critical | important | minor
+                                     # `critical` means it should be looked at
+                                     # before the next unrelated task starts. It
+                                     # does NOT mean act without authorisation.
+
+    status: pending                  # pending | accepted | rejected | deferred | merged
+
+    # ---- resolution. Required once status leaves `pending`. ----
+    resolution:
+      decided_by: session-2026-08-13-m1   # session that resolved it, or "operator"
+      decided_at: "2026-08-13T06:00:00+04:00"
+
+      reason: >
+        REQUIRED ON REJECT, and the reason this file exists at all. A rejected
+        recommendation is not deleted — it stays, with its reasoning, so the next
+        agent proposing the same thing finds out why it was already declined
+        instead of re-litigating it every third session. Organisational memory is
+        mostly a record of what was decided against.
+
+      # Set when accepted. Acceptance without one of these is not acceptance,
+      # it is agreement — and agreement does no work.
+      became_task: T-051             # the work it turned into
+      became_decision: DR-016        # the reasoning, when it changed architecture
+      merged_into: R-004             # when status is merged
+
+# ---------------------------------------------------------------------------
+# RELATIONSHIP TO DECISIONS
+#
+#   recommendation  a proposal. May be wrong. May be rejected. Always kept.
+#   decision        reasoning that has been settled, with alternatives recorded.
+#
+# Accepting a recommendation that changes architecture produces a DR-*.
+# Accepting one that is merely work produces a task. Often both. The
+# recommendation keeps the pointer either way, so the trail runs
+# finding -> proposal -> decision -> task -> evidence without a gap.
+#
+# DISAGREEMENT BETWEEN AGENTS uses this same channel. Two agents proposing
+# competing approaches file two recommendations naming the same components; the
+# resolution accepts one and rejects the other WITH ITS REASON, and both survive.
+# There is deliberately no separate conflict register: a disagreement is a
+# decision that has not been made yet, and giving it its own file would create a
+# second place to look for the same answer.
+# ---------------------------------------------------------------------------

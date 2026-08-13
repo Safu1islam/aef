@@ -1,12 +1,14 @@
 # AEF — Agentic Engineering Framework
 
+[![tests](https://github.com/Safu1islam/aef/actions/workflows/tests.yml/badge.svg)](https://github.com/Safu1islam/aef/actions/workflows/tests.yml)
+
 **An open, tool-neutral operating standard for AI coding agents.**
 
 Drop it into any repository and every agent — Claude Code, Codex, Cursor, Gemini, Kimi,
 whatever ships next — works to the same process, writes to the same state, and reports
 to the same standard.
 
-MIT licensed. Version 0.1.0.
+MIT licensed. **No dependencies, no install step, no Python required to adopt it.**
 
 ---
 
@@ -72,6 +74,14 @@ mkdir -p .ai/state/decisions .ai/memory/domains .ai/config
 and upgrade by replacing the directory. Full options and the project layout are
 in [`install/BOOTSTRAP.md`](install/BOOTSTRAP.md).
 
+**No Python needed to adopt AEF.** The standard is markdown and YAML — the
+constitution, protocols, roles, routing table and schemas are read directly by
+whatever agent you use. `tools/` is an optional convenience that reads and writes
+the same state files, with no `pip install`, no lockfile and no third-party
+import (CI fails the build if one appears). Drop it into a Rust, Go, TypeScript
+or data project and none of them acquires a Python dependency.
+See [`docs/NO-PYTHON.md`](docs/NO-PYTHON.md).
+
 Then, in your agent tool:
 
 > Read aef/core/CONSTITUTION.md, then run aef/protocols/01-intake.md.
@@ -89,8 +99,11 @@ config/      framework.yaml, routing.yaml, quality-dimensions.yaml
 schemas/     task graph, fabrication registry, locks, domain memory
 adapters/    entry stubs per tool
 install/     bootstrap and upgrade
-docs/        why, concepts, quickstart, AI review request
+docs/        why, concepts, architecture, migration, no-python
+tools/       OPTIONAL. stdlib-only CLI + dashboard over the same state
 ```
+
+Everything above `tools/` is the standard, and needs no interpreter.
 
 ## Documentation
 
@@ -98,6 +111,9 @@ docs/        why, concepts, quickstart, AI review request
 - [Concepts](docs/CONCEPTS.md) — layers, roles, dimensions, modes, registry
 - [Quickstart](docs/QUICKSTART.md) — installation and first run
 - [AI review request](docs/AI-REVIEW-REQUEST.md) — adversarial review prompt for any model
+- [Architecture](docs/ARCHITECTURE.md) — what owns which fact, and why
+- [Migration](docs/MIGRATION.md) — what an upgrade actually requires
+- [Using AEF without Python](docs/NO-PYTHON.md) — the tooling is optional
 
 ## Status and honest gaps
 

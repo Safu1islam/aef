@@ -59,9 +59,16 @@ Status answers the first. **A live session answers the second**
 dashboard prefers the session because a heartbeat is minutes where a lock TTL is
 hours.
 
+Protocol: `protocols/04-planning.md`. Gate: every task appears as exactly one
+plan leaf and every leaf points at a real task — checked by
+`python aef/tools/aef.py validate`, or by reading the two files where the
+tooling is not used.
+
 ## 4b. You are one of several
 
-Announce yourself before you work, and say so periodically:
+Announce yourself before you work, say so periodically, and hand off when you go.
+The obligation is the record, not the command — `tools/` writes these files for
+you, and writing them by hand is equally valid. See `docs/NO-PYTHON.md`.
 
 ```
 aef.py session start --id <id> --agent <agent>   # I am here, as this agent
@@ -77,7 +84,6 @@ quietly widens its own scope is how two agents end up in one file.
 One live session holds the **Main Engineer** post and coordinates. It is the
 orchestrator role with continuity, not an eighth role — `protocols/10`.
 
-Protocol: `protocols/04-planning.md`. Gate: `python aef/tools/aef.py validate`.
 
 ## 5. Autonomy budget
 
@@ -164,7 +170,8 @@ Read only what the current stage requires.
 
 | When | Read |
 |---|---|
-| Starting any session | `aef.py brief --agent <you>` — then only what it names |
+| Starting any session | `aef.py brief --agent <you>` — or read `.ai/project.md`, then your task |
+| Working without the Python tools | `docs/NO-PYTHON.md` — the standard needs no interpreter |
 | Coordinating a fleet | `protocols/10-main-engineer.md` |
 | Proposing work outside your task | `aef.py recommend add` |
 | Full loop detail | `core/OPERATING-LOOP.md` |

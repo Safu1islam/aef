@@ -3,6 +3,43 @@
 All notable changes to AEF are recorded here.
 Versions follow semantic versioning. Projects pin a version; upgrades are deliberate.
 
+## [0.4.2] — 2026-08-13
+
+CI, and a correction: the tooling is optional and 0.4.0 stopped saying so.
+
+### Added
+- **`.github/workflows/tests.yml`** — the suite on every push, across Python
+  3.9–3.13 plus Windows and macOS, run **with and without PyYAML**. It exists
+  because of a real defect: the 0.4.0 standalone-layout bug survived three
+  releases undetected, since the suite had only ever run vendored inside a host
+  project. CI clones this repository standalone, which is exactly the broken
+  layout
+- A **`stdlib only`** job that parses every import and fails the build if a
+  third-party dependency ever appears. "No install step" is now enforced rather
+  than promised
+- A **reader-parity** job proving the bundled YAML reader and PyYAML agree on
+  every config and schema file. AEF ships without PyYAML, so disagreement would
+  mean project state meant different things to different agents
+- **`docs/NO-PYTHON.md`** — what each tool does and how to do it by hand, plus
+  the concepts alone for projects that adopt nothing else
+
+### Fixed
+- **0.4.0 made the constitution read as if Python were mandatory.** §4b listed
+  `aef.py` commands as the obligation; the obligation is the *record*, and
+  writing the state files by hand is equally valid. The planning gate is
+  likewise stated as the invariant it checks, with the command as one way to
+  check it
+- The §4a planning gate had been orphaned under §4b when §4b was inserted
+- `README.md` still said "Version 0.1.0", omitted `tools/` from the layout, and
+  did not link ARCHITECTURE, MIGRATION or NO-PYTHON
+
+### Note
+The framework is 38 markdown and YAML files against 19 Python files. The
+standard is the former. A governance layer that forced a Python install on a
+Rust or TypeScript project would be imposing its own stack — which is precisely
+what `protocols/02-technology-selection.md` tells agents not to do, and
+Constitution §8 forbids by name.
+
 ## [0.4.1] — 2026-08-13
 
 Install instructions, which were wrong for the primary audience.

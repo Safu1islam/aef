@@ -12,4 +12,4 @@ __all__ = ["paths", "yamlio", "writer", "model", "assign", "team", "teamstore", 
 
 # Kept in step with aef/VERSION. The dashboard displays it so a stale vendored
 # copy is visible rather than silent.
-AEF_TOOLS_VERSION = "0.4.1"
+AEF_TOOLS_VERSION = "0.4.2"

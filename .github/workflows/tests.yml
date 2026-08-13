@@ -1,0 +1,137 @@
+# The tooling in tools/ is OPTIONAL. AEF's standard is markdown and YAML; the
+# Python layer is a convenience that reads and writes those files. This workflow
+# exists to keep that convenience honest — not to make Python a requirement.
+# See docs/NO-PYTHON.md.
+
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # The layout that actually broke. Before v0.4.0 the suite was only ever run
+  # with AEF vendored inside a host project, where `<project>/aef/config` always
+  # resolved. A standalone checkout — which is what every clone of THIS
+  # repository is — produced 13 errors, undetected across three releases.
+  # CI runs in exactly that layout, which is the whole point.
+  suite:
+    name: py${{ matrix.python }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false        # report the real floor, not the first failure
+      matrix:
+        python: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-latest]
+        include:
+          # AEF is developed on Windows and the emitter pins newline="\n" so
+          # its output is byte-identical across platforms. Prove it rather than
+          # assume it.
+          - python: "3.11"
+            os: windows-latest
+          - python: "3.11"
+            os: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: No dependencies to install
+        run: |
+          python -c "import sys; print(sys.version)"
+          python -c "import yaml" 2>/dev/null && echo "PyYAML present" || echo "PyYAML absent"
+        shell: bash
+
+      - name: Tests, with the bundled reader only
+        run: python tools/run_tests.py
+
+      - name: Tests, with PyYAML installed
+        run: |
+          python -m pip install --quiet pyyaml
+          python tools/run_tests.py
+        shell: bash
+
+      - name: Both readers agree on this repository's own files
+        run: python tools/aef.py doctor
+
+  # AEF ships without PyYAML and falls back to a bundled reader. If the two
+  # disagree, a project's state means one thing to an agent that happens to have
+  # PyYAML and another to an agent that does not. Pinned here as its own job so
+  # a failure names the cause rather than hiding inside the matrix.
+  reader-parity:
+    name: bundled reader == PyYAML
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --quiet pyyaml
+      - name: Compare both readers on every config and schema file
+        run: |
+          python - <<'PY'
+          import glob, sys
+          sys.path.insert(0, "tools")
+          import yaml
+          from aefkit import yamlio
+          bad = []
+          files = sorted(glob.glob("config/*.yaml") + glob.glob("schemas/*.yaml"))
+          for path in files:
+              with open(path, encoding="utf-8") as handle:
+                  text = handle.read()
+              if yamlio.loads(text, name=path, force_bundled=True) != yaml.safe_load(text):
+                  bad.append(path)
+          print(f"compared {len(files)} files")
+          if bad:
+              print("READERS DISAGREE:", *bad, sep="\n  ")
+              sys.exit(1)
+          print("both readers agree")
+          PY
+
+  # The standard is markdown and YAML. A user who never runs Python still gets
+  # the constitution, the protocols, the roles, the routing table and the
+  # schemas. This job fails if the framework ever grows a third-party import,
+  # because that would turn the optional layer into an install step.
+  no-dependencies:
+    name: stdlib only
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Every import must be stdlib, aefkit, or optional PyYAML
+        run: |
+          python - <<'PY'
+          import ast, pathlib, sys
+          stdlib = set(sys.stdlib_module_names)
+          allowed = stdlib | {"aefkit", "yaml"}   # yaml is guarded by try/except
+          offenders = []
+          for path in pathlib.Path("tools").rglob("*.py"):
+              tree = ast.parse(path.read_text(encoding="utf-8"))
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      names = [a.name.split(".")[0] for a in node.names]
+                  elif isinstance(node, ast.ImportFrom):
+                      names = [(node.module or "").split(".")[0]] if node.level == 0 else []
+                  else:
+                      continue
+                  for name in names:
+                      if name and name not in allowed:
+                          offenders.append(f"{path}: {name}")
+          print("\n".join(offenders) if offenders else "stdlib only — no install step required")
+          sys.exit(1 if offenders else 0)
+          PY
+
+      - name: The standard itself needs no interpreter
+        run: |
+          count=$(find core protocols roles config schemas adapters install -type f | wc -l)
+          echo "$count markdown/YAML files carry the standard, readable with no tooling at all"
+          test "$count" -gt 30

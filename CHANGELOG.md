@@ -3,6 +3,23 @@
 All notable changes to AEF are recorded here.
 Versions follow semantic versioning. Projects pin a version; upgrades are deliberate.
 
+## [0.5.1] — 2026-08-13
+
+### Fixed
+- **The example decayed fifteen minutes after it was written.** Session
+  heartbeats ship as fixed timestamps, so under the framework's 15-minute
+  default every session in the demo read as stale almost immediately — anyone
+  cloning the repository a day later saw a dead team, which is the opposite of
+  what the example exists to show. Found by opening the dashboard a quarter of
+  an hour after generating it
+- `docs/example/.ai/config/overrides.yaml` widens the window to 48 hours **for
+  the example only**, and `session-mer-03` is now dated well beyond it so it
+  stays stale on purpose. The file doubles as a worked demonstration of the
+  override mechanism
+- The value is documented as **not** to be copied into a real project: a
+  48-hour window means a crashed agent holds its claims for two days before
+  anyone is told
+
 ## [0.5.0] — 2026-08-13
 
 A runnable example, so the dashboard has something to show on a machine that

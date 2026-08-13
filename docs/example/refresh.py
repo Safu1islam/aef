@@ -30,9 +30,11 @@ SESSION_AGES = {
     "session-mer-02": (46, 1),
     "session-mer-04": (63, 3),
     "session-mer-07": (120, 4),
-    # Deliberately stale: well past the 15-minute default, so the dashboard has
-    # something honest to report. Do not "fix" this one.
-    "session-mer-03": (400, 96),
+    # Deliberately stale, and dated well beyond the example's own 48-hour
+    # window (.ai/config/overrides.yaml) so it STAYS stale however long after
+    # generation the demo is viewed. Do not "fix" this one — a dashboard that
+    # has never shown bad news has not been tested.
+    "session-mer-03": (5000, 4300),
 }
 
 # minutes ago, per recommendation id: (raised_at, decided_at or None)

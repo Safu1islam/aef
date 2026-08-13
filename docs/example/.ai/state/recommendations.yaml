@@ -10,7 +10,7 @@ recommendations:
     raised_by: "session-mer-02"
     raised_by_agent: "frontend-agent"
     during_task: "T-031"
-    raised_at: "2026-08-13T11:01:42+04:00"
+    raised_at: "2026-08-13T11:14:35+04:00"
     recommendation: >
       Replace the advisory-lock numbering in src/billing/invoice.py with a
       Postgres sequence per tax year.
@@ -32,7 +32,7 @@ recommendations:
     raised_by: "session-mer-02"
     raised_by_agent: "frontend-agent"
     during_task: "T-032"
-    raised_at: "2026-08-13T12:01:42+04:00"
+    raised_at: "2026-08-13T12:14:35+04:00"
     recommendation: "Add Redis and cache rendered PDFs for 24 hours."
     reason: "PDF rendering takes ~600ms and the detail page requests it on every view."
     expected_benefit: "Sub-50ms repeat views."
@@ -42,7 +42,7 @@ recommendations:
     status: "rejected"
     resolution:
       decided_by: "session-mer-01"
-      decided_at: "2026-08-13T13:01:42+04:00"
+      decided_at: "2026-08-13T13:14:35+04:00"
       reason: >
         Measured first: the detail page is viewed 1.4 times per invoice on
         average, so the cache would miss on almost every request while adding a
@@ -55,7 +55,7 @@ recommendations:
     raised_by: "session-mer-01"
     raised_by_agent: "architect"
     during_task: "T-022"
-    raised_at: "2026-08-13T13:31:42+04:00"
+    raised_at: "2026-08-13T13:44:35+04:00"
     recommendation: >
       Before T-022 is reimplemented, add a test that replays a real captured
       webhook payload twice inside the dedupe window and asserts one credit.
@@ -70,6 +70,6 @@ recommendations:
     status: "accepted"
     resolution:
       decided_by: "session-mer-01"
-      decided_at: "2026-08-13T13:41:42+04:00"
+      decided_at: "2026-08-13T13:54:35+04:00"
       reason: "Accepted without argument. Folded into T-022's reimplementation."
       became_task: "T-022"

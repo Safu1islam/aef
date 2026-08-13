@@ -51,6 +51,25 @@ seen it deliver bad news, so this one does:
 - **Five agents from four vendors** — Claude, Codex, Gemini, Kimi — coordinating
   through the same files, because nothing in the framework branches on vendor.
 
+## Why the example widens its own staleness window
+
+`.ai/config/overrides.yaml` sets `heartbeat_stale_minutes: 2880` — 48 hours,
+against the framework default of 15 minutes.
+
+That is not a recommendation, it is a property of shipping fixed timestamps.
+Under the default, every session here reads as stale a quarter of an hour after
+generation, so anyone cloning the repository a day later sees a dead team —
+exactly the opposite of the demo's point. Caught by looking at the dashboard
+fifteen minutes after writing it, not in review.
+
+**Do not copy that value into a real project.** A 48-hour window means a crashed
+agent holds its claims for two days before anyone is told. 15 minutes is the
+right number for work that is actually happening.
+
+The file doubles as a worked example of the override mechanism: it deep-merges
+over `config/framework.yaml`, and a project never edits the framework to change
+its own behaviour.
+
 ## Regenerating the timestamps
 
 Session heartbeats are written relative to generation time so the demo shows a

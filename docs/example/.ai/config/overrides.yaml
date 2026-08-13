@@ -1,0 +1,25 @@
+# EXAMPLE DATA — fictional. See ../state/plan.yaml.
+#
+# This file is also a working demonstration of the override mechanism: it is
+# deep-merged over aef/config/framework.yaml, and a project never edits the
+# framework to change behaviour.
+#
+# WHY THE WINDOW IS WIDE HERE, and only here:
+#
+# The example ships with fixed timestamps. Under the framework default of 15
+# minutes, every session in it reads as stale within a quarter of an hour of
+# generation — so anyone cloning the repository a day later sees a dead team,
+# which is precisely the opposite of what the demo exists to show.
+#
+# Widening the window to 48 hours makes the four live sessions stay live and
+# keeps session-mer-03 stale, because it is deliberately dated well beyond it.
+# The demo therefore keeps telling the truth about itself for days rather than
+# minutes.
+#
+# DO NOT COPY THIS VALUE INTO A REAL PROJECT. A 48-hour heartbeat window means
+# a crashed agent holds its claims for two days before anyone is told. The
+# framework default of 15 minutes is the right number for work that is
+# actually happening.
+
+execution:
+  heartbeat_stale_minutes: 2880

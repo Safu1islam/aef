@@ -1,0 +1,202 @@
+# EXAMPLE DATA — a fictional project, for documentation and screenshots.
+#
+# "Meridian" is not real. No such product, team or repository exists. This file
+# exists so anyone can run the dashboard and see what a populated plan looks
+# like before they have a project of their own:
+#
+#     python aef/tools/aef.py --root aef/docs/example dashboard
+#
+# It also serves as a worked example of a well-formed plan: a tree with real
+# depth, every status represented, agents assigned, and an honest
+# known_omissions entry.
+
+meta:
+  plan_version: 3
+  schema_version: 1
+  project: Meridian
+  aef_version: 0.4.2
+  planned_at: 2026-05-04
+  planned_by_role: analyst
+  mode: standard
+
+  completeness:
+    declared_complete: true
+    basis: >
+      Planned end to end before implementation, per Constitution 4a. Every
+      section a shipping invoicing product needs is represented, including the
+      operational work that is usually discovered late — backups, rate limits
+      and the dunning flow.
+    known_omissions:
+      - >
+        Multi-currency is deliberately unplanned. The pricing model is not
+        settled, and planning against an unsettled model produces tasks that
+        get rewritten. Named here rather than left silent — an unnamed gap
+        reads as "nothing to do".
+      - >
+        SOC 2 evidence collection is a business process, not an agent task, so
+        it is not a node. It remains open in the completion report.
+
+tree:
+  id: PRJ
+  type: project
+  title: Meridian
+  children:
+
+    - id: S-FOUNDATION
+      type: section
+      title: Foundation
+      note: The substrate every other section is a thin caller of.
+      children:
+        - id: N-001
+          type: task
+          agent: architect
+          title: Service skeleton and configuration
+          task: T-001
+        - id: N-002
+          type: task
+          agent: backend-agent
+          title: Postgres schema and migration runner
+          task: T-002
+        - id: N-003
+          type: task
+          agent: infra-agent
+          title: Local development environment
+          task: T-003
+
+    - id: S-AUTH
+      type: section
+      title: Authentication
+      note: Mode critical — routing.yaml escalates anything touching sessions.
+      children:
+        - id: F-LOGIN
+          type: feature
+          title: Login
+          children:
+            - id: N-010
+              type: task
+              agent: backend-agent
+              title: Session issuing and refresh
+              task: T-010
+            - id: N-011
+              type: task
+              agent: frontend-agent
+              title: Login screen and error states
+              task: T-011
+            - id: N-012
+              type: task
+              agent: security-agent
+              title: Rate limiting and lockout
+              task: T-012
+        - id: F-SIGNUP
+          type: feature
+          title: Registration
+          children:
+            - id: N-013
+              type: task
+              agent: backend-agent
+              title: Account creation and email verification
+              task: T-013
+            - id: N-014
+              type: task
+              agent: frontend-agent
+              title: Signup flow
+              task: T-014
+        - id: N-015
+          type: task
+          agent: security-agent
+          title: Password reset without account enumeration
+          task: T-015
+
+    - id: S-BILLING
+      type: section
+      title: Billing
+      note: >
+        Money. routing.yaml forces mode critical, three reviewers, idempotency
+        and audit_trail dimensions.
+      children:
+        - id: N-020
+          type: task
+          agent: backend-agent
+          title: Invoice model and numbering
+          task: T-020
+        - id: N-021
+          type: task
+          agent: backend-agent
+          title: Payment provider integration
+          task: T-021
+        - id: N-022
+          type: task
+          agent: backend-agent
+          title: Webhook handling, idempotent
+          task: T-022
+        - id: N-023
+          type: task
+          agent: implementer
+          title: Dunning and retry schedule
+          task: T-023
+
+    - id: S-APP
+      type: section
+      title: Application
+      children:
+        - id: N-030
+          type: task
+          agent: frontend-agent
+          title: Dashboard layout and navigation
+          task: T-030
+        - id: N-031
+          type: task
+          agent: frontend-agent
+          title: Invoice list and filters
+          task: T-031
+        - id: N-032
+          type: task
+          agent: frontend-agent
+          title: Invoice detail and PDF export
+          task: T-032
+        - id: N-033
+          type: task
+          agent: frontend-agent
+          title: Empty, loading and error states
+          task: T-033
+
+    - id: S-QUALITY
+      type: section
+      title: Testing and quality
+      children:
+        - id: N-040
+          type: task
+          agent: test-agent
+          title: Integration suite over the API
+          task: T-040
+        - id: N-041
+          type: task
+          agent: test-agent
+          title: End-to-end checkout path
+          task: T-041
+        - id: N-042
+          type: task
+          agent: qa-agent
+          title: Human-experience walk, five personas
+          task: T-042
+
+    - id: S-OPS
+      type: section
+      title: Operations
+      note: The work that is usually discovered late, planned up front instead.
+      children:
+        - id: N-050
+          type: task
+          agent: infra-agent
+          title: Deployment pipeline and rollback
+          task: T-050
+        - id: N-051
+          type: task
+          agent: infra-agent
+          title: Backups and a tested restore
+          task: T-051
+        - id: N-052
+          type: task
+          agent: infra-agent
+          title: Metrics, logs and alerting
+          task: T-052

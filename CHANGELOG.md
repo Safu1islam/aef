@@ -3,6 +3,37 @@
 All notable changes to AEF are recorded here.
 Versions follow semantic versioning. Projects pin a version; upgrades are deliberate.
 
+## [0.5.0] — 2026-08-13
+
+A runnable example, so the dashboard has something to show on a machine that
+has never run AEF.
+
+### Added
+- **`docs/example/`** — a fictional project, "Meridian", with a full plan tree,
+  23 tasks, five agent sessions across four vendors, and three recommendations.
+  `python tools/aef.py --root docs/example dashboard` and it is populated
+- **`docs/example/refresh.py`** — rewrites the session heartbeats relative to
+  now, so the demo shows a live team rather than one that went stale the day
+  after it was written. Stdlib only, like everything else in `tools/`
+- **README: "See it before you install it"** — real `progress`, `tree` and
+  `team` output, so the framework can be evaluated without installing it
+
+### Why the example is not a happy path
+It carries a **failed** task with its review findings, a **blocked** payment
+integration escalated rather than stubbed, a **stale** agent session whose
+claims are flagged as possibly abandoned, a **blocked agent** with the reason a
+human needs, and a **rejected recommendation kept with its reasoning**. All six
+statuses appear. A dashboard is only worth trusting once you have seen it
+deliver bad news, and a demo that shows 100% green teaches nothing.
+
+Every file is labelled `EXAMPLE DATA` in its header. Constitution §6 makes
+undisclosed fabrication the cardinal sin, and shipping demo state that could be
+mistaken for a real project would be exactly that.
+
+### Minor
+- Version is 0.5.0 rather than 0.4.3: the example is new surface that the
+  README, the docs and a script now depend on, not a fix to existing behaviour.
+
 ## [0.4.2] — 2026-08-13
 
 CI, and a correction: the tooling is optional and 0.4.0 stopped saying so.

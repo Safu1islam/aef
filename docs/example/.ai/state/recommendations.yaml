@@ -1,0 +1,75 @@
+# EXAMPLE DATA — fictional. See plan.yaml.
+#
+# Note R-002: rejected, and KEPT, with its reason. That is the point of this
+# file. A rejected proposal that is deleted gets re-proposed by the next agent
+# every few sessions; one that is kept answers them before they ask.
+
+recommendations:
+  - id: "R-001"
+    title: "Move invoice numbering to a database sequence"
+    raised_by: "session-mer-02"
+    raised_by_agent: "frontend-agent"
+    during_task: "T-031"
+    raised_at: "2026-08-13T11:01:42+04:00"
+    recommendation: >
+      Replace the advisory-lock numbering in src/billing/invoice.py with a
+      Postgres sequence per tax year.
+    reason: >
+      Measured under the T-020 contention test: the advisory lock adds 40ms at
+      the 95th percentile with 50 concurrent creates, and the lock is held
+      across a network call to the PDF service.
+    expected_benefit: "Removes the network call from inside the lock. p95 back under 10ms."
+    risk: >
+      Sequences are not gapless on rollback, and gapless numbering per tax year
+      is a legal requirement in two of the target markets. This may be
+      unworkable for that reason alone.
+    affected_components: ["src/billing/invoice.py", "src/billing/pdf.py"]
+    severity: "important"
+    status: "pending"
+
+  - id: "R-002"
+    title: "Cache rendered invoice PDFs in Redis"
+    raised_by: "session-mer-02"
+    raised_by_agent: "frontend-agent"
+    during_task: "T-032"
+    raised_at: "2026-08-13T12:01:42+04:00"
+    recommendation: "Add Redis and cache rendered PDFs for 24 hours."
+    reason: "PDF rendering takes ~600ms and the detail page requests it on every view."
+    expected_benefit: "Sub-50ms repeat views."
+    risk: "A new piece of infrastructure to operate, back up and secure."
+    affected_components: ["src/billing/pdf.py"]
+    severity: "minor"
+    status: "rejected"
+    resolution:
+      decided_by: "session-mer-01"
+      decided_at: "2026-08-13T13:01:42+04:00"
+      reason: >
+        Measured first: the detail page is viewed 1.4 times per invoice on
+        average, so the cache would miss on almost every request while adding a
+        service to operate. The 600ms is also mostly font loading, which is
+        fixable in process. Rejected on arithmetic, not on principle — revisit
+        if repeat views exceed 5x, and fix the font loading regardless.
+
+  - id: "R-003"
+    title: "Webhook handler needs a replay test before it is rewritten"
+    raised_by: "session-mer-01"
+    raised_by_agent: "architect"
+    during_task: "T-022"
+    raised_at: "2026-08-13T13:31:42+04:00"
+    recommendation: >
+      Before T-022 is reimplemented, add a test that replays a real captured
+      webhook payload twice inside the dedupe window and asserts one credit.
+    reason: >
+      The review that failed T-022 found the defect by reading, not by test.
+      The suite passed. A rewrite without that test can reintroduce the same
+      ordering bug and stay green.
+    expected_benefit: "The defect class becomes detectable rather than reviewer-dependent."
+    risk: "None identified."
+    affected_components: ["src/billing/webhook.py", "tests/test_webhook.py"]
+    severity: "critical"
+    status: "accepted"
+    resolution:
+      decided_by: "session-mer-01"
+      decided_at: "2026-08-13T13:41:42+04:00"
+      reason: "Accepted without argument. Folded into T-022's reimplementation."
+      became_task: "T-022"

@@ -1,0 +1,308 @@
+# EXAMPLE DATA — fictional. See plan.yaml for what this is and why.
+#
+# Every status in the vocabulary appears at least once, deliberately: complete,
+# claimed and in_review (both display as In progress), blocked, failed, and
+# ready with an unmet dependency (which displays as Waiting for dependency).
+# A dashboard is only trustworthy if you have seen it show bad news.
+
+tasks:
+
+  - id: T-001
+    title: Service skeleton and configuration
+    change_class: new_project
+    status: complete
+    owned_paths: [src/config/**]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "Loading config with no file present yields documented defaults and does not raise."
+        result: PASSED
+        evidence: "tests/test_config.py::test_defaults — executed, observed pass"
+
+  - id: T-002
+    title: Postgres schema and migration runner
+    change_class: data_model_change
+    status: complete
+    depends_on: [T-001]
+    owned_paths: [src/db/**, migrations/**]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "A fresh database applies every migration and reports the expected schema version."
+        result: PASSED
+        evidence: "tests/test_migrations.py — executed, observed pass"
+      - id: AC-2
+        statement: "Every migration has a down path that restores the previous schema."
+        result: PASSED
+        evidence: "tests/test_migrations.py::test_down — executed, observed pass"
+
+  - id: T-003
+    title: Local development environment
+    change_class: infrastructure
+    status: complete
+    owned_paths: [docker-compose.yml]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "A new machine reaches a running stack with one documented command."
+        result: PASSED
+        evidence: "Verified on a clean container image."
+
+  - id: T-010
+    title: Session issuing and refresh
+    change_class: auth_or_permissions
+    mode: critical
+    status: complete
+    depends_on: [T-002]
+    owned_paths: [src/auth/session.py]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "A refresh token is single-use; replaying one revokes the family and logs the attempt."
+        result: PASSED
+        evidence: "tests/test_auth.py::test_replay_revokes_family — executed, observed pass"
+
+  - id: T-011
+    title: Login screen and error states
+    change_class: ui_change
+    status: complete
+    depends_on: [T-010]
+    owned_paths: [web/routes/login/**]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "A wrong password preserves the entered email and does not say which field was wrong."
+        result: PASSED
+        evidence: "tests/e2e/login.spec.ts — executed, observed pass"
+
+  - id: T-012
+    title: Rate limiting and lockout
+    change_class: auth_or_permissions
+    mode: critical
+    status: claimed
+    claimed_by: session-mer-04
+    depends_on: [T-010]
+    owned_paths: [src/auth/ratelimit.py]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "Six failed attempts in a minute locks the account for fifteen minutes and alerts."
+        result: NOT_RUN
+        evidence: "not implemented"
+
+  - id: T-013
+    title: Account creation and email verification
+    change_class: auth_or_permissions
+    mode: critical
+    status: complete
+    depends_on: [T-002]
+    owned_paths: [src/auth/signup.py]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "An unverified account cannot issue an invoice."
+        result: PASSED
+        evidence: "tests/test_signup.py::test_unverified_blocked — executed, observed pass"
+
+  - id: T-014
+    title: Signup flow
+    change_class: ui_change
+    status: complete
+    depends_on: [T-013]
+    owned_paths: [web/routes/signup/**]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "Submitting an email already in use shows an inline message and preserves every other field."
+        result: PASSED
+        evidence: "tests/e2e/signup.spec.ts — executed, observed pass"
+
+  - id: T-015
+    title: Password reset without account enumeration
+    change_class: auth_or_permissions
+    mode: critical
+    status: in_review
+    claimed_by: session-mer-04
+    depends_on: [T-013]
+    owned_paths: [src/auth/reset.py]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "The response and its timing are identical whether or not the address exists."
+        result: PASSED
+        evidence: "tests/test_reset.py::test_no_enumeration — executed, 1000 samples, no timing signal"
+
+  - id: T-020
+    title: Invoice model and numbering
+    change_class: data_model_change
+    mode: critical
+    status: complete
+    depends_on: [T-002]
+    owned_paths: [src/billing/invoice.py]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "Invoice numbers are gapless per tax year under concurrent creation."
+        result: PASSED
+        evidence: "tests/test_invoice.py::test_gapless_under_contention — executed, 50 threads"
+
+  - id: T-021
+    title: Payment provider integration
+    change_class: money_or_payments
+    mode: critical
+    status: blocked
+    blocked_reason: >
+      NEEDS_HUMAN — the provider's live keys require a signed commercial
+      agreement, and the sandbox does not reproduce the 3DS challenge path this
+      task exists to handle. Escalated rather than stubbed: a fabricated pass
+      here would be a payment bug found in production.
+    depends_on: [T-020]
+    owned_paths: [src/billing/provider.py]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "A declined card surfaces the provider's reason without exposing the raw response."
+        result: NOT_RUN
+        evidence: "blocked on credentials"
+
+  - id: T-022
+    title: Webhook handling, idempotent
+    change_class: money_or_payments
+    mode: critical
+    status: failed
+    blocked_reason: >
+      Implemented and rejected at review. Two BLOCKING findings: the handler
+      deduplicated on the provider's event id but processed before recording it,
+      so a retry inside the window double-credited; and signature verification
+      compared with == rather than a constant-time compare. Reverted rather than
+      patched — the ordering defect is a design error, not a bug.
+    depends_on: [T-020]
+    owned_paths: [src/billing/webhook.py]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "The same webhook delivered twice credits the account once."
+        result: FAILED
+        evidence: "tests/test_webhook.py::test_duplicate_delivery — executed, observed FAIL"
+
+  - id: T-023
+    title: Dunning and retry schedule
+    change_class: money_or_payments
+    mode: critical
+    status: ready
+    depends_on: [T-021, T-022]
+    owned_paths: [src/billing/dunning.py]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "A failed charge retries on the documented schedule and stops after the final attempt."
+        result: NOT_RUN
+        evidence: "not started — depends on T-021 and T-022"
+
+  - id: T-030
+    title: Dashboard layout and navigation
+    change_class: ui_change
+    status: complete
+    owned_paths: [web/routes/app/**]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "Every primary destination is reachable in two clicks from any page."
+        result: PASSED
+        evidence: "tests/e2e/nav.spec.ts — executed, observed pass"
+
+  - id: T-031
+    title: Invoice list and filters
+    change_class: ui_change
+    status: complete
+    depends_on: [T-020, T-030]
+    owned_paths: [web/routes/app/invoices/**]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "Filters survive a page reload and a shared link reproduces the same view."
+        result: PASSED
+        evidence: "tests/e2e/invoices.spec.ts — executed, observed pass"
+
+  - id: T-032
+    title: Invoice detail and PDF export
+    change_class: ui_change
+    status: claimed
+    claimed_by: session-mer-02
+    depends_on: [T-031]
+    owned_paths: ["web/routes/app/invoices/[id]/**"]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "The PDF matches the on-screen totals to the cent, including tax lines."
+        result: NOT_RUN
+        evidence: "in progress"
+
+  - id: T-033
+    title: Empty, loading and error states
+    change_class: ui_change
+    status: ready
+    depends_on: [T-031]
+    owned_paths: [web/components/states/**]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "A first-time account with no invoices is told what to do next, not shown a blank table."
+        result: NOT_RUN
+        evidence: "not started"
+
+  - id: T-040
+    title: Integration suite over the API
+    change_class: new_project
+    status: complete
+    owned_paths: [tests/integration/**]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "The suite fails when a handler is removed, proving it exercises the API rather than mocks."
+        result: PASSED
+        evidence: "Verified by sabotage: handler removed, 14 failures, restored."
+
+  - id: T-041
+    title: End-to-end checkout path
+    change_class: new_project
+    status: ready
+    depends_on: [T-021]
+    owned_paths: [tests/e2e/checkout.spec.ts]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "A full signup-to-paid-invoice run passes against the sandbox."
+        result: NOT_RUN
+        evidence: "waiting on T-021"
+
+  - id: T-042
+    title: Human-experience walk, five personas
+    change_class: ui_change
+    status: ready
+    depends_on: [T-033]
+    owned_paths: [docs/hx-review.md]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "Each persona completes the core journey, or the exact step that stopped them is recorded."
+        result: NOT_RUN
+        evidence: "not started"
+
+  - id: T-050
+    title: Deployment pipeline and rollback
+    change_class: infrastructure
+    mode: critical
+    status: complete
+    owned_paths: [.github/workflows/deploy.yml]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "A rollback to the previous release completes in under five minutes, rehearsed."
+        result: PASSED
+        evidence: "Rehearsed against staging on 2026-06-18. Observed 3m41s."
+
+  - id: T-051
+    title: Backups and a tested restore
+    change_class: infrastructure
+    mode: critical
+    status: claimed
+    claimed_by: session-mer-07
+    depends_on: [T-002]
+    owned_paths: [ops/backup/**]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "A restore into an empty database reproduces the source byte-for-byte and is verified, not assumed."
+        result: NOT_RUN
+        evidence: "restore drill scheduled"
+
+  - id: T-052
+    title: Metrics, logs and alerting
+    change_class: infrastructure
+    status: ready
+    depends_on: [T-050]
+    owned_paths: [ops/observability/**]
+    acceptance_criteria:
+      - id: AC-1
+        statement: "A failed payment webhook pages someone within two minutes."
+        result: NOT_RUN
+        evidence: "not started"

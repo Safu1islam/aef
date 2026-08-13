@@ -1,0 +1,58 @@
+# EXAMPLE DATA — fictional. See plan.yaml.
+#
+# Timestamps are written relative to when this file was generated, so the demo
+# shows a live team rather than one that went stale months ago. Regenerate with
+# docs/example/refresh.py if the ages stop looking sensible.
+
+sessions:
+  - id: "session-mer-01"
+    agent: "architect"
+    role: "orchestrator"
+    vendor: "anthropic"
+    model: "claude-opus-5"
+    main_engineer: true
+    activity: "Triaging the billing block and the failed webhook review"
+    status: "idle"
+    started_at: "2026-08-13T11:51:42+04:00"
+    heartbeat_at: "2026-08-13T14:59:42+04:00"
+  - id: "session-mer-02"
+    agent: "frontend-agent"
+    vendor: "openai"
+    model: "codex"
+    main_engineer: false
+    task: "T-032"
+    activity: "PDF export — matching tax lines to the on-screen totals"
+    status: "working"
+    started_at: "2026-08-13T14:15:42+04:00"
+    heartbeat_at: "2026-08-13T15:00:42+04:00"
+  - id: "session-mer-04"
+    agent: "security-agent"
+    vendor: "google"
+    model: "gemini"
+    main_engineer: false
+    task: "T-012"
+    activity: "Lockout thresholds; reset path is in review"
+    status: "working"
+    started_at: "2026-08-13T13:58:42+04:00"
+    heartbeat_at: "2026-08-13T14:58:42+04:00"
+  - id: "session-mer-07"
+    agent: "infra-agent"
+    vendor: "anthropic"
+    model: "claude-sonnet-5"
+    main_engineer: false
+    task: "T-051"
+    activity: "Restore drill against an empty database"
+    status: "blocked"
+    blocked_reason: "Staging snapshot bucket denies the CI role. Needs an operator to grant read."
+    started_at: "2026-08-13T13:01:42+04:00"
+    heartbeat_at: "2026-08-13T14:57:42+04:00"
+  - id: "session-mer-03"
+    agent: "test-agent"
+    vendor: "moonshot"
+    model: "kimi"
+    main_engineer: false
+    task: "T-041"
+    activity: "Checkout end-to-end — parked behind T-021"
+    status: "working"
+    started_at: "2026-08-13T08:21:42+04:00"
+    heartbeat_at: "2026-08-13T13:25:42+04:00"

@@ -92,6 +92,85 @@ Then, in your agent tool:
 
 Full instructions: [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
 
+## See it before you install it
+
+A fictional project ships with the framework, so the dashboard has something to
+show on a machine that has never run AEF:
+
+```bash
+python tools/aef.py --root docs/example dashboard     # then open 127.0.0.1:7423
+```
+
+Read-only, localhost, no state written, nothing installed. The same state as
+text, for agents and for people who would rather not open a browser:
+
+```console
+$ python tools/aef.py --root docs/example progress
+
+Meridian
+Project Progress: 52%
+  [##################----------------]
+
+    12  completed
+     4  in progress
+     1  blocked
+     3  waiting for dependency
+     1  failed
+     2  pending
+  ----
+    23  tasks in the plan
+```
+
+The tree is the primary view. Depth is whatever the project needs, and every
+percentage is derived on read — nothing is a number someone typed:
+
+```console
+$ python tools/aef.py --root docs/example tree
+
+Meridian  ·  52% (12/23)
+|-- [x] Foundation  [100% 3/3]
+|-- [~] Authentication  [67% 4/6]
+|   |-- [~] Login  [67% 2/3]
+|   |   |-- [x] Session issuing and refresh (T-010)     -> backend-agent
+|   |   |-- [x] Login screen and error states (T-011)   -> frontend-agent
+|   |   `-- [~] Rate limiting and lockout (T-012)       -> security-agent
+|   `-- [x] Registration  [100% 2/2]
+|-- [X] Billing  [25% 1/4]
+|   |-- [x] Invoice model and numbering (T-020)         -> backend-agent
+|   |-- [!] Payment provider integration (T-021)        -> backend-agent
+|   |-- [X] Webhook handling, idempotent (T-022)        -> backend-agent
+|   `-- [.] Dunning and retry schedule (T-023)          -> implementer
+`-- ...
+```
+
+And who is actually working right now — derived from session heartbeats, not
+from a status somebody remembered to set:
+
+```console
+$ python tools/aef.py --root docs/example team
+
+Main Engineer: session-mer-01 (architect)
+
+Live sessions (4):
+  [idle    ] session-mer-01    architect
+  [working ] session-mer-02    frontend-agent  -> T-032
+  [working ] session-mer-04    security-agent  -> T-012
+  [blocked ] session-mer-07    infra-agent     -> T-051
+        blocked: Staging snapshot bucket denies the CI role. Needs an operator to grant read.
+
+Stale (1):
+  [stale   ] session-mer-03    test-agent      last beat 96 min ago
+
+1 coordination notice(s):
+  - session session-mer-03 (test-agent) on T-041 is stale. Its locks and claims may be abandoned
+```
+
+The example is deliberately **not** a happy path — it carries a failed review, a
+blocked payment integration, a stale agent and a rejected proposal, because a
+dashboard is only worth trusting once you have seen it deliver bad news. See
+[`docs/example/`](docs/example/) for what each part demonstrates.
+
+
 ## Layout
 
 ```

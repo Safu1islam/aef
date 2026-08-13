@@ -5,5 +5,14 @@ Thumbs.db
 __pycache__/
 node_modules/
 
-# Projects using AEF keep their own .ai/ layer. It never belongs in this repo.
+# Projects using AEF keep their own .ai/ layer. It never belongs in this repo —
+# a real project's plan, tasks and locks are that project's business, and a
+# stray copy here would be someone else's private state published by accident.
 .ai/
+
+# ...with one deliberate exception: the example project's state IS the demo.
+# Without it, `--root docs/example dashboard` renders an empty plan on every
+# fresh clone, and the README's screenshots describe files nobody received.
+# Caught by noticing the files were not staged, not by a user reporting it.
+!docs/example/.ai/
+!docs/example/.ai/**

@@ -82,6 +82,10 @@ import (CI fails the build if one appears). Drop it into a Rust, Go, TypeScript
 or data project and none of them acquires a Python dependency.
 See [`docs/NO-PYTHON.md`](docs/NO-PYTHON.md).
 
+If you do use the tools: **Python 3.9 or newer**, measured — CI runs the suite
+on 3.9, 3.10, 3.11, 3.12 and 3.13, on Linux, Windows and macOS, with and
+without PyYAML.
+
 Then, in your agent tool:
 
 > Read aef/core/CONSTITUTION.md, then run aef/protocols/01-intake.md.

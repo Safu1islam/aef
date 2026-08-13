@@ -79,8 +79,9 @@ If you adopt only that list, you have most of the value.
 
 ## Which Python, if you do use the tools
 
-Whatever the badge in `README.md` says, measured by CI across a version matrix
-rather than asserted. There is no `pip install` step, no lockfile, no
+**Python 3.9 or newer.** Measured, not asserted: CI runs the full suite on 3.9,
+3.10, 3.11, 3.12 and 3.13, across Linux, Windows and macOS, with PyYAML present
+and absent. The badge in `README.md` links to the run. There is no `pip install` step, no lockfile, no
 `requirements.txt`, and no third-party import — a CI job fails the build if one
 ever appears.
 

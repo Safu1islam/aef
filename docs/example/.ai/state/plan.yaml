@@ -14,7 +14,7 @@ meta:
   plan_version: 3
   schema_version: 1
   project: Meridian
-  aef_version: 0.4.2
+  aef_version: 0.5.1
   planned_at: 2026-05-04
   planned_by_role: analyst
   mode: standard

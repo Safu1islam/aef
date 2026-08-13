@@ -21,6 +21,21 @@ python tools/aef.py --root docs/example validate
 
 ---
 
+## The screenshots in the top-level README come from here
+
+`img/` holds six PNGs — three views, light and dark — captured from this
+example by headless Chrome. They contain no real project's data, which is the
+reason the example exists at all: the dashboard renders whatever project it is
+pointed at, and a screenshot of a real one would publish that project's task
+titles, blockers and agent activity.
+
+Regenerate them after any UI change:
+
+```bash
+python tools/aef.py --root docs/example dashboard --port 7424 &
+python docs/example/shots.py
+```
+
 ## This is example data
 
 Meridian is not real. No such product, team or repository exists, and no file

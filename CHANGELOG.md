@@ -3,6 +3,31 @@
 All notable changes to AEF are recorded here.
 Versions follow semantic versioning. Projects pin a version; upgrades are deliberate.
 
+## [0.5.2] — 2026-08-13
+
+### Added
+- **Screenshots in the README** — the project tree, the team view and the
+  progress view, light and dark, via `<picture>` so each follows the reader's
+  GitHub theme
+- **`docs/example/shots.py`** — regenerates all six from the example project, so
+  the images can be refreshed after a UI change instead of rotting. It needs
+  Playwright and deliberately lives in `docs/` rather than `tools/`: the
+  stdlib-only contract covers what users run, and a maintainer regenerating
+  documentation images is not that. The CI job that fails on a third-party
+  import in `tools/` is unaffected
+- Falls back to a system Chrome or Edge when Playwright's own Chromium is not
+  installed, which is the common case
+
+### Why the images come from the example and never from a real project
+The dashboard renders whatever project it is pointed at. A screenshot of a live
+one publishes that project's task titles, blockers and agent activity — which is
+exactly what happened on the first capture attempt here, and is the reason the
+example project was built before any screenshot was taken.
+
+### Fixed
+- The example's `meta.aef_version` still read 0.4.2, so the dashboard badge in
+  every screenshot was two versions stale
+
 ## [0.5.1] — 2026-08-13
 
 ### Fixed

@@ -101,8 +101,35 @@ show on a machine that has never run AEF:
 python tools/aef.py --root docs/example dashboard     # then open 127.0.0.1:7423
 ```
 
-Read-only, localhost, no state written, nothing installed. The same state as
-text, for agents and for people who would rather not open a browser:
+Read-only, localhost, no state written, nothing installed.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/example/img/tree-dark.png">
+  <img alt="The project tree: sections, features and tasks, each with derived percentages, acceptance-criteria counts and the agent assigned to it. A blocked task and a failed task carry their reasons inline." src="docs/example/img/tree-light.png">
+</picture>
+
+**The tree is the primary view.** Depth is whatever the project needs. Every
+percentage is derived on read — none is a number someone typed. The blocked and
+failed tasks carry their reasons where you see them, not in a log.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/example/img/team-dark.png">
+  <img alt="The team view: live agent sessions with heartbeats and vendors, one stale session flagged, a blocked agent with its reason, and recommendations including a rejected one kept with its reasoning." src="docs/example/img/team-light.png">
+</picture>
+
+**Who is actually working, right now** — derived from session heartbeats, not
+from a status somebody remembered to set. One session has gone stale and its
+claims are flagged as possibly abandoned. One agent is blocked, with the reason
+a human needs. A rejected proposal is kept with its reasoning, so nobody
+re-proposes it. Five sessions, four vendors, one set of files.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/example/img/progress-dark.png">
+  <img alt="The progress view: 52% complete, a status meter, what is being worked on now, what is ready next, and what needs attention with its blocking reason." src="docs/example/img/progress-light.png">
+</picture>
+
+The same state as text, for agents and for people who would rather not open a
+browser:
 
 ```console
 $ python tools/aef.py --root docs/example progress

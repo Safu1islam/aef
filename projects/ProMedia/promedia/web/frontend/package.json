@@ -1,0 +1,22 @@
+{
+  "name": "promedia-studio",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Pro Media v2 rich client (DR-017). A thin projection of promedia/core/registry.py over /api/op/*. No business logic lives here — see DR-002 and the frontend brief.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vue-tsc": "^2.2.0"
+  }
+}

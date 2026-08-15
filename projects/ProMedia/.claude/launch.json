@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "promedia",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-c", "from promedia.web.app import run_server; run_server()"],
+      "port": 8765
+    },
+    {
+      "name": "aef-dashboard",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["aef/tools/aef.py", "dashboard", "--port", "7423"],
+      "port": 7423
+    }
+  ]
+}

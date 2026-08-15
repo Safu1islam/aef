@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Post {{ d.post_id }} — ProMedia{% endblock %}
+{% block body %}
+<h1>Review post</h1>
+<p class="mono muted">{{ d.post_id }}</p>
+
+{% if d.warning %}
+<p class="banner bad"><strong>{{ d.warning }}</strong></p>
+{% endif %}
+
+<!-- The decision context is rendered BEFORE any control. F-2 makes this the
+     authority surface; the operator must see what they are authorising. -->
+<div class="panel">
+  <h2>What you are authorising</h2>
+  <dl class="kv">
+    <dt>Account</dt>
+    <dd>{% if d.account %}<strong>{{ d.account.platform }}</strong> {{ d.account.handle }}{% else %}—{% endif %}</dd>
+
+    <dt>Rights verdict</dt>
+    <dd>
+      {% if d.rights %}
+        <span class="verdict {{ d.rights.verdict }}">{{ d.rights.verdict }}</span>
+        <span class="muted">via {{ d.rights.matched_rule }}</span>
+      {% else %}
+        <span class="verdict ESCALATE">NO VERDICT</span>
+      {% endif %}
+    </dd>
+
+    <dt>Ruleset</dt>
+    <dd class="mono">{% if d.rights %}{{ d.rights.ruleset }} v{{ d.rights.ruleset_version }}
+        · jurisdiction {{ d.rights.jurisdiction }}{% else %}—{% endif %}</dd>
+
+    <dt>Rights claim</dt>
+    <dd>
+      {% if d.declaration %}
+        {{ d.declaration.authorship }}
+        {% if d.declaration.attested_by_operator %}
+          <span class="muted">— attested by you</span>
+        {% else %}
+          <br><strong class="ESCALATE verdict">Declared by an agent
+          ({{ d.declaration.declared_by }}), not attested by you.</strong>
+        {% endif %}
+      {% else %}—{% endif %}
+    </dd>
+
+    <dt>Asset hash</dt>
+    <dd class="mono">{% if d.asset %}{{ d.asset.content_hash }}{% else %}—{% endif %}</dd>
+
+    <dt>File</dt>
+    <dd>{% if d.asset %}{{ d.asset.original_filename }}
+        ({{ '%.1f'|format(d.asset.byte_size / 1048576) }} MB){% else %}—{% endif %}</dd>
+
+    <dt>Provenance</dt>
+    <dd>{% if d.provenance_sealed %}sealed <span class="mono muted">{{ d.provenance_id }}</span>
+        {% else %}<strong>not sealed</strong> — publication will be refused{% endif %}</dd>
+
+    <dt>Status</dt><dd>{{ d.status }}</dd>
+    <dt>Queued by</dt><dd class="muted">{{ d.created_by }}</dd>
+  </dl>
+</div>
+
+<div class="panel">
+  <h2>Body</h2>
+  <p>{{ d.body }}</p>
+</div>
+
+{% if d.rights and d.rights.verdict != 'PERMITTED' %}
+<p class="banner bad">
+  This asset's rights verdict is <strong>{{ d.rights.verdict }}</strong>. Approval is
+  refused by the server, not merely hidden here. Transforming the material does not
+  change this — a derivative inherits its source's verdict.
+</p>
+{% endif %}
+
+{# T-029: a control that is disabled without a stated reason reads as a UI bug.
+   The rights verdict is NOT the problem here and the banner must not imply it
+   is — the verdict is valid and survives deletion by design (F-8). #}
+{% if not d.media_available %}
+<p class="banner bad">
+  <strong>This asset's media is gone</strong> (state: {{ d.media_state }}). Retention
+  deleted the bytes, and deletion is final. The rights verdict and the sealed
+  provenance record remain valid and readable — nothing is wrong with them — but
+  there is nothing to publish, so approval and publication are both refused by the
+  server.
+</p>
+{% endif %}
+
+{% if d.status == 'queued' %}
+<form method="post" action="/posts/{{ d.post_id }}/approve">
+  <input type="hidden" name="decision" value="approved">
+  <button type="submit" {% if not d.approvable %}disabled{% endif %}>
+    Approve for publication
+  </button>
+</form>
+<form method="post" action="/posts/{{ d.post_id }}/approve" style="margin-top:.5rem">
+  <input type="hidden" name="decision" value="rejected">
+  <button type="submit">Reject</button>
+</form>
+{% elif d.status == 'approved' %}
+<form method="post" action="/posts/{{ d.post_id }}/publish">
+  <button type="submit">Publish now</button>
+</form>
+<p class="muted">Publishing sends content to an external platform. Not reversible once seen.</p>
+{% elif d.status == 'publishing' %}
+<p class="banner bad"><strong>Stuck mid-publish.</strong> A publish attempt claimed this
+  post and did not finish — most likely the process stopped. No publication was
+  recorded. <strong>Check {{ d.account.platform if d.account else 'the platform' }}
+  yourself before retrying</strong>, then release the claim.</p>
+<form method="post" action="/posts/{{ d.post_id }}/release-claim">
+  <button type="submit">Release claim and return to approved</button>
+</form>
+{% elif d.status == 'published' %}
+  {# The marker comes from the publication record, not from current config,
+     so a simulated publication cannot later render as a real one (I6). #}
+  {% if d.was_simulated %}
+  <p class="banner bad"><strong>NEVER PUBLISHED.</strong> This was recorded by the
+    simulated publisher (fabrication F-001). Nothing reached
+    {{ d.account.platform if d.account else 'any platform' }}.<br>
+    <span class="mono muted">{{ d.publication.platform_post_id }}</span></p>
+  {% else %}
+  <p class="banner">Published to <strong>{{ d.account.platform if d.account else '—' }}</strong>
+    at {{ d.publication.published_at }}.<br>
+    <span class="mono muted">{{ d.publication.platform_post_id }}</span></p>
+  {% endif %}
+{% endif %}
+
+<p><a href="/">Back to dashboard</a></p>
+{% endblock %}

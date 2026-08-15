@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ error.error }} — ProMedia{% endblock %}
+{% block body %}
+<h1>{{ error.error }}</h1>
+<p class="banner bad">{{ error.message }}</p>
+{% if error.detail %}
+<div class="panel">
+  <h2>Detail</h2>
+  <dl class="kv">
+  {% for k, v in error.detail.items() %}
+    <dt>{{ k }}</dt><dd class="mono">{{ v }}</dd>
+  {% endfor %}
+  </dl>
+</div>
+{% endif %}
+<p><a href="/">Back to dashboard</a></p>
+{% endblock %}

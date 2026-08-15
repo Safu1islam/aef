@@ -1,0 +1,178 @@
+/* Design tokens extracted from Pro Media v2.dc.html (the operator's mockup).
+   Dark-only, deliberately — a video-production tool's dark UI is a real
+   convention (colour-accuracy judgement calls are hard against a light
+   surround), not an omission on the mockup's part, so no light variant is
+   invented here that the design never specified. */
+
+:root {
+  --bg: #08090b;
+  --bg-header: #0e1014;
+  --bg-toolbar: #0c0e12;
+  --bg-panel: #12151a;
+  --bg-column: #0f1216;
+  --bg-card: #161a1f;
+  --bg-card-alt: #141719;
+  --bg-field: #0b0d10;
+  --bg-chip: #1a1e23;
+  --bg-track: #1e2228;
+
+  --fg: #e9ebee;
+  --fg-bright: #f3f5f7;
+  --fg-dim: #dfe3e8;
+  --fg-soft: #cfe1ff;
+  --fg-muted-1: #b9bfc7;
+  --fg-muted-2: #8b9199;
+  --fg-muted-3: #6e747d;
+  --fg-muted-4: #5f656e;
+
+  --line-1: rgba(255, 255, 255, 0.04);
+  --line-2: rgba(255, 255, 255, 0.05);
+  --line-3: rgba(255, 255, 255, 0.07);
+  --line-4: rgba(255, 255, 255, 0.09);
+  --line-5: rgba(255, 255, 255, 0.1);
+  --line-6: rgba(255, 255, 255, 0.12);
+
+  --green: #9fe870;
+  --green-ink: #0b1f06;
+  --green-wash: rgba(159, 232, 112, 0.14);
+  --green-wash-soft: rgba(159, 232, 112, 0.1);
+
+  --amber: #ffb84d;
+  --amber-wash: rgba(255, 184, 77, 0.14);
+  --amber-wash-soft: rgba(255, 184, 77, 0.08);
+  --amber-border: rgba(255, 184, 77, 0.22);
+
+  --red: #ff6b6b;
+  --red-soft: #ff8a8a;
+  --red-wash: rgba(255, 107, 107, 0.14);
+  --red-border: rgba(255, 107, 107, 0.24);
+
+  --blue: #7fb0ff;
+  --blue-bright: #a8c8ff;
+  --blue-wash: rgba(127, 176, 255, 0.14);
+  --blue-border: rgba(127, 176, 255, 0.4);
+
+  --violet: #c9a7ff;
+
+  --grey-wash: #1e2228;
+  --grey-fg: #b9bfc7;
+
+  --font-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 9px;
+  --radius-xl: 11px;
+
+  --focus-ring: 3px solid #4a90d9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+a {
+  color: var(--blue);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--blue-bright);
+}
+
+button {
+  font-family: inherit;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2f36;
+  border-radius: 9px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes pmpulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.pill {
+  font: 500 10.5px var(--font-ui);
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+  display: inline-block;
+}
+/* Shared tone palette for pills/badges across views. A component may define
+   its own scoped .tone-* rules (PanelScreen does, for its own card badges);
+   these globals cover every view that doesn't need to. */
+.tone-grey {
+  background: var(--grey-wash);
+  color: var(--grey-fg);
+}
+.tone-green {
+  background: var(--green-wash);
+  color: var(--green);
+}
+.tone-amber {
+  background: var(--amber-wash);
+  color: var(--amber);
+}
+.tone-red {
+  background: var(--red-wash);
+  color: var(--red-soft);
+}
+.tone-blue {
+  background: var(--blue-wash);
+  color: var(--blue);
+}
+.mono {
+  font-family: var(--font-mono);
+}
+.muted {
+  color: var(--fg-muted-2);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

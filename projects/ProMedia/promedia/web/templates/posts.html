@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Posts — ProMedia{% endblock %}
+{% block body %}
+
+<p class="muted"><a href="/">&larr; Dashboard</a></p>
+<h1>Posts</h1>
+<p class="muted">Agents queue; only the operator approves and publishes (F-2).</p>
+
+<form method="get" action="/posts" class="row">
+  <select name="status" aria-label="Filter by status">
+    <option value="">Any status</option>
+    {% for s in ["queued", "approved", "publishing", "published", "rejected", "missed"] %}
+    <option value="{{ s }}"{% if status_filter == s %} selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Filter</button>
+  {% if status_filter %}<a href="/posts" class="muted">Clear</a>{% endif %}
+</form>
+
+{% if posts %}
+<div class="wrap">
+<table>
+  <thead><tr><th>Post</th><th>Status</th><th>Body</th><th>Queued by</th><th>When</th></tr></thead>
+  <tbody>
+  {% for p in posts %}
+    <tr>
+      <td><a class="mono" href="/posts/{{ p.id }}">{{ p.id }}</a></td>
+      <td>{{ p.status }}
+        {% if p.simulated %}<br><span class="verdict BLOCKED">SIMULATED — never published</span>{% endif %}
+        {% if p.status == 'publishing' %}<br><span class="verdict BLOCKED">stuck mid-publish</span>{% endif %}
+        {% if p.status == 'missed' %}<br><span class="verdict BLOCKED">window missed, escalated (C-27)</span>{% endif %}
+      </td>
+      <td>{{ p.body[:80] }}</td>
+      <td class="muted">{{ p.created_by }}</td>
+      <td class="mono">{{ p.created_at[:16].replace("T", " ") }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">
+  {% if status_filter %}No posts with status '{{ status_filter }}'. <a href="/posts">Clear the filter</a>.
+  {% else %}No posts yet. An agent can queue one with
+    <code>python -m promedia queue-post</code>; approval happens here.{% endif %}
+</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Media — ProMedia{% endblock %}
+{% block body %}
+
+<h1>Media</h1>
+<p class="muted">
+  Every asset here was ingested with a rights declaration — that is not
+  optional, it is the whole rights model. Nothing gets in without one.
+</p>
+
+{% if storage %}
+<div class="banner{% if storage.state != 'ok' %} bad{% endif %}">
+  <strong>{{ '%.2f'|format(storage.total_bytes / 1073741824) }} GB</strong> of
+  {{ '%.0f'|format(storage.ceiling_bytes / 1073741824) }} GB used
+  ({{ (storage.fraction_used * 100)|round(1) }}%) &middot; state
+  <strong>{{ storage.state }}</strong>
+  {% if storage.state != 'ok' %} — new ingest may be refused or queued rather
+  than breach the ceiling (F-7){% endif %}.
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Add media</h2>
+  <p class="muted">
+    Uploaded bytes are staged on this machine and then ingested exactly as
+    <span class="mono">python -m promedia ingest</span> would: content-addressed,
+    reserved against the storage ceiling first, and refused without the
+    declaration below.
+  </p>
+  <form method="post" action="/media" enctype="multipart/form-data">
+    <div class="field">
+      <label for="f-file">File <span class="req" title="required">required</span></label>
+      <input type="file" id="f-file" name="file" required>
+    </div>
+
+    <div class="field">
+      <label>Authorship <span class="req" title="required">required</span></label>
+      <p class="muted hint">What this asset actually is, rights-wise. Determines
+        whether it can ever become publishable.</p>
+      <div class="row" style="gap:1.4rem">
+        <label style="display:flex;align-items:center;gap:.4rem;margin:0">
+          <input type="radio" name="authorship" value="operator_original" required> you made it — no third-party material
+        </label>
+        <label style="display:flex;align-items:center;gap:.4rem;margin:0">
+          <input type="radio" name="authorship" value="third_party"> someone else's work, licensed or permitted
+        </label>
+        <label style="display:flex;align-items:center;gap:.4rem;margin:0">
+          <input type="radio" name="authorship" value="unknown"> not sure — flag it for review
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="f-tpm">Third-party material</label>
+      <p class="muted hint">One item per line — e.g. a music track or a stock
+        clip used inside this asset, even if the asset is otherwise yours.
+        Leave empty if none. Any entry here blocks the operator-original path
+        from permitting automatically.</p>
+      <textarea id="f-tpm" name="third_party_material" rows="2"></textarea>
+    </div>
+
+    <div class="field">
+      <label for="f-source-url">Source URL</label>
+      <p class="muted hint">Where this came from, if it did not originate on
+        this machine.</p>
+      <input type="text" id="f-source-url" name="source_url">
+    </div>
+
+    <div class="row" style="align-items:flex-start">
+      <div class="field" style="flex:1;margin:0">
+        <label for="f-grantor">Licence grantor</label>
+        <input type="text" id="f-grantor" name="licence_grantor">
+      </div>
+      <div class="field" style="flex:1;margin:0">
+        <label for="f-scope">Licence scope</label>
+        <input type="text" id="f-scope" name="licence_scope">
+      </div>
+      <div class="field" style="flex:1;margin:0">
+        <label for="f-evidence">Licence evidence reference</label>
+        <input type="text" id="f-evidence" name="licence_evidence_ref">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="f-pds">Public domain source</label>
+      <p class="muted hint">Named, verifiable source if claiming public domain.
+        An unverified claim will not permit on its own (F-5) — a model or
+        agent opinion is evidence, never a verdict.</p>
+      <input type="text" id="f-pds" name="public_domain_source">
+    </div>
+
+    <button type="submit">Ingest</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Not from here yet</h2>
+  <p class="muted">
+    Importing directly from a URL (yt-dlp is installed) is planned but not
+    built — T-046. Uploading a file you already have works today; there is
+    deliberately no path that acquires media without the declaration above.
+  </p>
+</div>
+
+{% if queued %}
+<div class="banner bad">
+  <strong>{{ queued | length }} ingest attempt(s) queued</strong>, refused at
+  admission control and waiting for space (F-7). They resume automatically as
+  storage is freed.
+  <ul>
+    {% for q in queued %}
+    <li class="mono">{{ q.source_path }} &middot; short by
+      {{ '%.2f'|format(q.shortfall_bytes / 1073741824) }} GB</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<h2>Library</h2>
+<form method="get" action="/media" class="row">
+  <input type="text" name="q" value="{{ filters.q }}" placeholder="Search filename"
+         aria-label="Search filename">
+  <select name="verdict" aria-label="Filter by verdict">
+    <option value="">Any verdict</option>
+    {% for v in ["PERMITTED", "ESCALATE", "BLOCKED"] %}
+    <option value="{{ v }}"{% if filters.verdict == v %} selected{% endif %}>{{ v }}</option>
+    {% endfor %}
+    <option value="none"{% if filters.verdict == "none" %} selected{% endif %}>No verdict yet</option>
+  </select>
+  <select name="state" aria-label="Filter by media state">
+    <option value="">Any state</option>
+    {% for s in ["stored", "deleted", "absent"] %}
+    <option value="{{ s }}"{% if filters.state == s %} selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Filter</button>
+  {% if filters.q or filters.verdict or filters.state %}
+  <a href="/media" class="muted">Clear</a>
+  {% endif %}
+</form>
+
+{% if assets %}
+<div class="wrap">
+<table>
+  <thead>
+    <tr><th>Asset</th><th>Rights</th><th>Media</th><th>Duration</th><th>Size</th><th>Ingested</th></tr>
+  </thead>
+  <tbody>
+    {% for a in assets %}
+    <tr>
+      <td><a href="/media/{{ a.id }}"><strong>{{ a.original_filename }}</strong></a><br>
+          <span class="muted mono">{{ a.id }}</span></td>
+      <td><span class="verdict {{ a.latest_verdict or '' }}">{{ a.latest_verdict or 'NO VERDICT' }}</span></td>
+      <td class="mono">{{ a.state }}{% if a.probe_status != 'ok' %}
+          <br><span class="muted">probe {{ a.probe_status }}</span>{% endif %}</td>
+      <td class="mono">{% if a.duration_seconds %}{{ '%.0f'|format(a.duration_seconds) }}s{% else %}—{% endif %}</td>
+      <td class="mono">{{ '%.1f'|format(a.byte_size / 1048576) }} MB</td>
+      <td class="mono">{{ a.ingested_at[:16].replace("T", " ") }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">
+  {% if filters.q or filters.verdict or filters.state %}
+    Nothing matches this filter. <a href="/media">Clear it</a>.
+  {% else %}
+    No media yet. Add a file above, or an agent can:
+    <code>python -m promedia ingest --source-path ... --declaration ...</code>
+  {% endif %}
+</p>
+{% endif %}
+
+{% endblock %}

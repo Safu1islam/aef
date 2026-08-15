@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "promedia"
+version = "0.1.0"
+description = "Single-operator social media production and publishing with a hard rights gate"
+requires-python = ">=3.11"
+# Deliberately small. Every dependency is already present in the operator's
+# environment (DR-001), and supply_chain_security counts additions against a
+# solo maintainer.
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "jinja2",
+    "pyyaml",
+    "python-multipart",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx"]
+
+[project.scripts]
+promedia = "promedia.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["promedia*"]
+
+[tool.setuptools.package-data]
+promedia = ["core/*.sql", "core/rulesets/*.yaml", "web/templates/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

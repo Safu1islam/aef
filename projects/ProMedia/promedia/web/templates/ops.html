@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Capabilities — ProMedia{% endblock %}
+{% block body %}
+<h1>Capabilities</h1>
+<p class="muted">
+  Every capability below is one implementation, reachable from this UI and from
+  <code>python -m promedia &lt;operation&gt;</code>. A capability present on only one
+  surface is a build failure, and <code>tests/test_parity.py</code> enforces it.
+  Follow an operation name to run it here.
+</p>
+<div class="wrap">
+<table>
+  <thead><tr><th>Operation</th><th>Authority</th><th>Summary</th><th>Parameters</th></tr></thead>
+  <tbody>
+  {% for op in operations %}
+    <tr>
+      <td class="mono"><a href="/ops/{{ op.name }}">{{ op.name }}</a></td>
+      <td>{% if op.authority == 'operator' %}<strong>operator</strong>{% else %}agent{% endif %}</td>
+      <td>{{ op.summary }}{% if op.danger %}<br><span class="muted">{{ op.danger }}</span>{% endif %}</td>
+      <td class="mono muted">
+        {%- for p in op.params -%}
+          {{ p.name }}{% if not p.required %}?{% endif %}{% if not loop.last %}, {% endif %}
+        {%- endfor -%}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

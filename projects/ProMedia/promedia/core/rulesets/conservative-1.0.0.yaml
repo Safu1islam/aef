@@ -1,0 +1,62 @@
+# Conservative ruleset, version 1.0.0 — DR-007.
+#
+# Jurisdiction-neutral by design. It recognises only unambiguous permissions and
+# implements NO doctrine requiring jurisdictional interpretation: there is no
+# fair use rule and no fair dealing rule here. They are absent, not approximated.
+# A confirmed jurisdiction can only relax this ruleset; it cannot invalidate a
+# verdict already issued under it (project.md section 7).
+#
+# Rule order is significant and is data, not code. Evaluation stops at the first
+# match. Blocking and escalating rules precede permitting rules so that a
+# permission can never win a race against a block.
+
+ruleset: conservative
+version: "1.0.0"
+jurisdiction: neutral
+
+parameters:
+  # Model evidence at or above this confidence contradicting the declaration
+  # forces ESCALATE. It can never force PERMITTED (F-5).
+  model_contradiction_threshold: 0.5
+
+rules:
+  - id: UNKNOWN_PROVENANCE
+    outcome: BLOCKED
+    because: "Source cannot be established. F-3 requires uncertainty to block."
+
+  - id: THIRD_PARTY_MATERIAL_UNCLEARED
+    outcome: BLOCKED
+    because: "Third-party material is declared with no matching licence record."
+
+  - id: MODEL_CONTRADICTS_DECLARATION
+    outcome: ESCALATE
+    because: >
+      Model-authored evidence disagrees with the declaration above the
+      contradiction threshold. A model may raise doubt; it may not resolve it.
+
+  - id: DECLARATION_NOT_OPERATOR_ATTESTED
+    outcome: ESCALATE
+    because: >
+      The declaration that would permit this was made by an agent, not attested
+      by the operator. An agent asserting "this is the operator's own work", or
+      inventing a licence record, is a proposal and not a fact. Only the
+      operator can attest to their own authorship or to holding a licence.
+      Run attest-declaration to confirm it.
+
+  - id: OPERATOR_ORIGINAL
+    outcome: PERMITTED
+    because: "Operator declares sole authorship and declares no third-party material."
+
+  - id: EXPLICIT_LICENCE
+    outcome: PERMITTED
+    because: "A licence record exists with grantor, scope and an evidence reference."
+
+  - id: PUBLIC_DOMAIN_VERIFIED
+    outcome: PERMITTED
+    because: "Public domain source recorded and verified by a non-model party."
+
+# The default arm. Anything unmatched is ESCALATE, never PERMITTED.
+default:
+  id: NO_RULE_MATCHED
+  outcome: ESCALATE
+  because: "No permitting rule matched. The default arm is the conservative one (F-3)."

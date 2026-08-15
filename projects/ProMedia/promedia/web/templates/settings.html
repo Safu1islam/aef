@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Settings — ProMedia{% endblock %}
+{% block body %}
+
+<p class="muted"><a href="/">&larr; Dashboard</a></p>
+<h1>Settings</h1>
+
+<div class="panel">
+  <h2>Storage</h2>
+  <dl class="kv">
+    <dt>Used</dt><dd>{{ '%.2f'|format(status.storage.total_bytes / 1073741824) }} GB
+      of {{ '%.0f'|format(status.storage.ceiling_bytes / 1073741824) }} GB
+      ({{ (status.storage.fraction_used * 100)|round(1) }}%)</dd>
+    <dt>State</dt><dd>{{ status.storage.state }}</dd>
+    <dt>Refuses at</dt><dd>{{ '%.0f'|format(status.storage.refuse_bytes / 1073741824) }} GB</dd>
+  </dl>
+  <p class="muted hint">Media library and ingest queue: <a href="/media">/media</a>.</p>
+</div>
+
+<div class="panel">
+  <h2>Rights ruleset in force</h2>
+  <dl class="kv">
+    <dt>Ruleset</dt><dd class="mono">{{ status.rights_ruleset.ruleset }} v{{ status.rights_ruleset.version }}</dd>
+    <dt>Jurisdiction</dt><dd class="mono">{{ status.rights_ruleset.jurisdiction }}</dd>
+  </dl>
+</div>
+
+<div class="panel">
+  <h2>Media production</h2>
+  <dl class="kv">
+    <dt>ffmpeg</dt><dd>{% if capabilities.ffmpeg_available %}available
+      <span class="mono muted">{{ capabilities.ffmpeg_path }}</span>{% else %}
+      <strong class="verdict BLOCKED">not installed</strong>{% endif %}</dd>
+    <dt>Caption font</dt><dd>{{ 'available' if capabilities.font_available else 'missing — captions will be refused' }}</dd>
+  </dl>
+  {% if capabilities.known_substitutions %}
+  <p class="muted hint">{{ capabilities.known_substitutions | length }} transition(s) do not
+    render as named — see <a href="/projects">Projects</a> for detail.</p>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Accounts</h2>
+  {% if accounts %}
+  <table>
+    <thead><tr><th>Platform</th><th>Handle</th><th>Status</th><th>Credential ref</th></tr></thead>
+    <tbody>
+    {% for acct in accounts %}
+      <tr>
+        <td><strong>{{ acct.platform }}</strong></td>
+        <td>{{ acct.handle }}</td>
+        <td>{{ acct.status }}</td>
+        <td class="mono muted">{{ acct.credential_ref }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No accounts connected.</p>
+  {% endif %}
+
+  <h3>Connect an account</h3>
+  {% if not principal.is_operator %}
+  <p class="banner">This session has agent authority. Connecting an account
+    establishes publishing capability (F-2) and requires the operator — open
+    the URL printed at server startup to authenticate, or submit this and see
+    it refused.</p>
+  {% endif %}
+  <form method="post" action="/settings/accounts" autocomplete="off">
+    <div class="row">
+      <select name="platform" aria-label="Platform" required>
+        <option value="x">x</option>
+        <option value="linkedin">linkedin</option>
+      </select>
+      <input type="text" name="handle" placeholder="handle" aria-label="Handle" required>
+    </div>
+    <div class="field">
+      <label for="f-secret">Credential</label>
+      <input type="password" id="f-secret" name="secret" autocomplete="new-password">
+      <p class="muted hint">Leave empty to reconnect an existing account without
+        rotating its credential. Never sent in a URL; not echoed back.</p>
+    </div>
+    <button type="submit">Connect</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Backup</h2>
+  <dl class="kv">
+    <dt>Permanent tables</dt><dd class="mono">{{ backup_scope.permanent | join(", ") }}</dd>
+    <dt>Media in backup</dt><dd>{{ 'yes' if backup_scope.media_included else 'no — masters are transient by policy (F-7)' }}</dd>
+  </dl>
+  <p class="muted hint">Export or verify a backup from
+    <a href="/ops/export-permanent-set">/ops/export-permanent-set</a>.</p>
+</div>
+
+<p class="row"><a href="/ops">Every capability</a></p>
+
+{% endblock %}

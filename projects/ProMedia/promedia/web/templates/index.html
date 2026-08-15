@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>ProMedia</h1>
+
+{% if status.simulation_enabled %}
+<p class="banner bad"><strong>Simulation is enabled.</strong> Publishing uses the stub
+publisher (fabrication F-001). Nothing reaches any platform, and every publication
+recorded while this is on is marked simulated.</p>
+{% endif %}
+
+{% if status.storage.state != 'ok' %}
+<p class="banner bad">
+  <strong>Storage at {{ (status.storage.fraction_used * 100)|round(1) }}%</strong>
+  ({{ status.storage.state }}) — new ingest may be refused or queued rather than
+  breach the 100 GB ceiling. <a href="/settings">Details</a>.
+</p>
+{% endif %}
+
+<h2>Needs you</h2>
+{% if pending_posts %}
+<div class="wrap">
+<table>
+  <thead><tr><th>Post</th><th>Status</th><th>Body</th><th>Queued by</th></tr></thead>
+  <tbody>
+  {% for p in pending_posts %}
+    <tr>
+      <td><a class="mono" href="/posts/{{ p.id }}">{{ p.id }}</a></td>
+      <td>
+        {% if p.status == 'publishing' %}<span class="verdict BLOCKED">stuck mid-publish</span>
+        {% else %}{{ p.status }}{% endif %}
+      </td>
+      <td>{{ p.body[:80] }}</td>
+      <td class="muted">{{ p.created_by }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">Nothing waiting on you. An agent can queue a post with
+  <code>python -m promedia queue-post</code>.</p>
+{% endif %}
+
+<h2>Recent renders</h2>
+{% if recent_renders %}
+<div class="wrap">
+<table>
+  <thead><tr><th>Project</th><th>Version</th><th>Size</th><th>Rendered</th><th></th></tr></thead>
+  <tbody>
+  {% for r in recent_renders %}
+    <tr>
+      <td><a href="/projects/{{ r.project_id }}">{{ r.project_id }}</a></td>
+      <td class="mono">v{{ r.edl_version }}</td>
+      <td class="mono">{{ (r.byte_size / 1048576) | round(1) }} MB</td>
+      <td class="mono">{{ r.rendered_at[:16].replace("T", " ") }}</td>
+      <td>
+        {% if not r.output_exists %}<span class="muted">file gone</span>
+        {% elif r.substitutions %}<span class="verdict ESCALATE" title="did not render exactly as asked">substituted</span>
+        {% else %}<a href="/renders/{{ r.id }}/file">play</a>{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">Nothing rendered yet.</p>
+{% endif %}
+
+<h2>Projects</h2>
+<p class="muted">{{ project_count }} total. <a href="/projects">Open the workspace &rarr;</a></p>
+{% if projects %}
+<ul>
+  {% for p in projects %}
+  <li><a href="/projects/{{ p.id }}">{{ p.title }}</a>
+    <span class="muted mono">v{{ p.edl_version }} &middot; {{ p.updated_at[:10] }}</span></li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+<p class="row" style="margin-top:1.5rem">
+  <a href="/media">Media library</a>
+  <a href="/posts">All posts</a>
+  <a href="/publications">Publications</a>
+  <a href="/settings">Settings</a>
+  <a href="/ops">Every capability</a>
+</p>
+{% endblock %}

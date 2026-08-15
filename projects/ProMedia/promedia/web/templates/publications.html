@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Publications — ProMedia{% endblock %}
+{% block body %}
+
+<p class="muted"><a href="/">&larr; Dashboard</a></p>
+<h1>Publications</h1>
+<p class="muted">What actually went out, or claims to have.</p>
+
+{% if publications %}
+<div class="wrap">
+<table>
+  <thead><tr><th>Post</th><th>Platform post id</th><th>Permalink</th><th>Published</th><th></th></tr></thead>
+  <tbody>
+  {% for pub in publications %}
+    <tr>
+      <td><a class="mono" href="/posts/{{ pub.post_id }}">{{ pub.post_id }}</a></td>
+      <td class="mono">{{ pub.platform_post_id }}</td>
+      <td>{% if pub.permalink %}<a href="{{ pub.permalink }}">{{ pub.permalink }}</a>{% else %}—{% endif %}</td>
+      <td class="mono">{{ pub.published_at[:16].replace("T", " ") }}</td>
+      <td>{% if pub.simulated %}<span class="verdict BLOCKED">SIMULATED — never published</span>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">Nothing published yet.</p>
+{% endif %}
+
+{% endblock %}

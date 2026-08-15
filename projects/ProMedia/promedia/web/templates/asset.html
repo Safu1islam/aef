@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}{{ a.asset.original_filename }} — ProMedia{% endblock %}
+{% block body %}
+
+<p class="muted"><a href="/media">&larr; Media</a></p>
+<h1>{{ a.asset.original_filename }}</h1>
+<p class="muted mono">{{ a.asset.id }}</p>
+
+{% if not rights.media_available %}
+<p class="banner bad">
+  <strong>This asset's media is gone</strong> (state: {{ a.asset.state }}).
+  {% if a.asset.state == 'deleted' %}Retention deleted it and that is final —
+  the rights and provenance records below remain valid and readable (F-8), but
+  there is nothing left to render or publish from this asset.
+  {% else %}The record survived a backup that the bytes did not; re-ingesting
+  the same file restores it under this same asset id.{% endif %}
+</p>
+{% endif %}
+
+<div class="grid">
+  <div class="panel"><h3>Rights verdict</h3>
+    <p class="big"><span class="verdict {{ rights.verdict }}">{{ rights.verdict }}</span></p>
+    <p class="muted mono">{{ rights.matched_rule or '—' }}</p></div>
+  <div class="panel"><h3>Size</h3>
+    <p class="big">{{ '%.1f'|format(a.asset.byte_size / 1048576) }} MB</p></div>
+  <div class="panel"><h3>Duration</h3>
+    <p class="big">{% if a.asset.duration_seconds %}{{ '%.0f'|format(a.asset.duration_seconds) }}s
+      {% else %}—{% endif %}</p>
+    <p class="muted">probe {{ a.asset.probe_status }}</p></div>
+  <div class="panel"><h3>Provenance</h3>
+    <p class="big">{% if a.provenance %}sealed{% else %}not sealed{% endif %}</p></div>
+</div>
+
+{% if rights.differs_from_stored %}
+<p class="banner bad">
+  The verdict shown above governs this asset now and differs from the last one
+  recorded directly on it — an ancestor's rights changed since. Re-run
+  determination to record a fresh verdict.
+</p>
+{% endif %}
+
+<div class="panel">
+  <h2>Rights</h2>
+  <dl class="kv">
+    <dt>Governing verdict</dt>
+    <dd><span class="verdict {{ rights.verdict }}">{{ rights.verdict }}</span>
+      {% if rights.governing_asset and rights.governing_asset != a.asset.id %}
+      <span class="muted">— inherited from ancestor <span class="mono">{{ rights.governing_asset }}</span></span>
+      {% endif %}</dd>
+    <dt>Reason</dt><dd>{{ rights.reason or '—' }}</dd>
+    <dt>Ruleset</dt><dd class="mono">{% if rights.ruleset_version %}{{ rights.ruleset_version }}
+      &middot; jurisdiction {{ rights.jurisdiction }}{% else %}—{% endif %}</dd>
+    <dt>Decided</dt><dd class="mono">{{ rights.decided_at or '—' }}</dd>
+    <dt>Publishable</dt><dd>{{ 'yes' if rights.publishable else 'no' }}</dd>
+  </dl>
+  <form method="post" action="/media/{{ a.asset.id }}/determine-rights" class="row">
+    <button type="submit">{% if a.verdicts %}Re-run{% else %}Run{% endif %} rights determination</button>
+    <span class="muted">Deterministic over recorded evidence (C-20) — same
+      inputs always produce the same verdict.</span>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Declaration</h2>
+  {% if a.declaration %}
+  <dl class="kv">
+    <dt>Authorship</dt><dd class="mono">{{ a.declaration.authorship }}</dd>
+    <dt>Third-party material</dt>
+    <dd>{% if a.declaration.third_party_material %}
+      <ul>{% for item in a.declaration.third_party_material %}<li>{{ item }}</li>{% endfor %}</ul>
+      {% else %}none declared{% endif %}</dd>
+    {% if a.declaration.source_url %}<dt>Source URL</dt><dd class="mono wrap">{{ a.declaration.source_url }}</dd>{% endif %}
+    {% if a.declaration.licence_grantor %}<dt>Licence grantor</dt><dd>{{ a.declaration.licence_grantor }}</dd>{% endif %}
+    {% if a.declaration.licence_scope %}<dt>Licence scope</dt><dd>{{ a.declaration.licence_scope }}</dd>{% endif %}
+    {% if a.declaration.public_domain_source %}<dt>Public domain source</dt><dd>{{ a.declaration.public_domain_source }}</dd>{% endif %}
+    <dt>Declared by</dt>
+    <dd class="mono">{{ a.declaration.declared_by }}
+      {% if a.declaration.declared_by_kind == 'operator' %}
+      <span class="muted">(operator — attested)</span>
+      {% else %}
+      <strong class="verdict ESCALATE">agent proposal — not yet attested</strong>
+      {% endif %}
+    </dd>
+  </dl>
+  {% if a.declaration.declared_by_kind != 'operator' %}
+  <form method="post" action="/media/{{ a.asset.id }}/attest" class="row">
+    <button type="submit"{% if not principal.is_operator %} disabled{% endif %}>Attest this declaration</button>
+    {% if not principal.is_operator %}
+    <span class="muted">Requires operator authority — this session is agent-only.</span>
+    {% else %}
+    <span class="muted">Confirms you stand behind this claim. Permitting rules
+      only fire on an operator attestation.</span>
+    {% endif %}
+  </form>
+  {% endif %}
+  {% else %}
+  <p class="muted">No declaration on file, which should not be reachable — ingest refuses without one.</p>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Evidence</h2>
+  <p class="muted">Evidence is never a verdict (F-5) — it is what determination reads.</p>
+  {% if a.evidence %}
+  <table>
+    <thead><tr><th>Kind</th><th>Body</th><th>By</th><th>When</th></tr></thead>
+    <tbody>
+      {% for e in a.evidence %}
+      <tr>
+        <td class="mono">{{ e.kind }}</td>
+        <td>{{ e.body }}{% if e.confidence is not none %} <span class="muted">({{ (e.confidence * 100)|round }}% confidence{% if e.model_id %}, {{ e.model_id }}{% endif %})</span>{% endif %}</td>
+        <td class="mono">{{ e.produced_by }}</td>
+        <td class="mono">{{ e.created_at[:16].replace("T", " ") }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No evidence recorded yet.</p>
+  {% endif %}
+  <form method="post" action="/media/{{ a.asset.id }}/evidence" style="margin-top:1rem">
+    <div class="row">
+      <input type="text" name="kind" placeholder="Kind, e.g. public_domain_verification"
+             aria-label="Evidence kind" required style="flex:1">
+    </div>
+    <div class="field">
+      <textarea name="body" rows="2" placeholder="What the evidence says" required></textarea>
+    </div>
+    <button type="submit">Add evidence as {{ principal.kind }}</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Provenance</h2>
+  {% if a.provenance %}
+  <dl class="kv">
+    <dt>Sealed</dt><dd class="mono">{{ a.provenance.sealed_at }}</dd>
+    <dt>Record</dt><dd class="mono">{{ a.provenance.provenance_id }}</dd>
+  </dl>
+  <p class="muted">This record embeds the declaration, evidence and verdict
+    that governed publication, and stays readable after the media is deleted (F-8).</p>
+  {% else %}
+  <p class="muted">Not sealed yet. Sealing freezes the current rights position
+    into a self-contained record that survives deletion.</p>
+  <form method="post" action="/media/{{ a.asset.id }}/seal">
+    <button type="submit"{% if not a.verdicts %} disabled{% endif %}>Seal provenance</button>
+    {% if not a.verdicts %}<span class="muted">Run a rights determination first.</span>{% endif %}
+  </form>
+  {% endif %}
+</div>
+
+{% if a.verdicts | length > 1 %}
+<div class="panel">
+  <h2>Verdict history</h2>
+  <table>
+    <thead><tr><th>Verdict</th><th>Rule</th><th>Ruleset</th><th>Decided</th></tr></thead>
+    <tbody>
+      {% for v in a.verdicts %}
+      <tr>
+        <td><span class="verdict {{ v.verdict }}">{{ v.verdict }}</span></td>
+        <td class="mono">{{ v.matched_rule }}</td>
+        <td class="mono">{{ v.ruleset }} {{ v.ruleset_version }}</td>
+        <td class="mono">{{ v.decided_at[:16].replace("T", " ") }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<p class="mono muted">content hash {{ a.asset.content_hash }}</p>
+
+{% endblock %}

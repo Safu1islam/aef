@@ -4,14 +4,16 @@
     {
       "name": "promedia",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-c", "from promedia.web.app import run_server; run_server()"],
-      "port": 8765
+      "runtimeArgs": ["-c", "import os, uvicorn; from promedia.config import load as load_config; from promedia.core.credentials import CredentialStore; from promedia.web.app import create_app; cfg = load_config(); cfg.values['web']['port'] = int(os.environ.get('PORT', cfg.get('web', 'port'))); store = CredentialStore(); token = store.ensure_operator_token(); host = str(cfg.get('web', 'host')); port = int(cfg.get('web', 'port')); print(f'\\nProMedia UI. Open this URL to authenticate as the operator:\\n  http://{host}:{port}/?token={token}\\n', flush=True); uvicorn.run(create_app(cfg, store=store), host=host, port=port, access_log=False)"],
+      "port": 8765,
+      "autoPort": true
     },
     {
       "name": "aef-dashboard",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["aef/tools/aef.py", "dashboard", "--port", "7423"],
-      "port": 7423
+      "runtimeArgs": ["-c", "import os, sys; sys.path.insert(0, 'aef/tools'); from aefkit import server; server.serve('.', '127.0.0.1', int(os.environ.get('PORT', 7423)))"],
+      "port": 7423,
+      "autoPort": true
     }
   ]
 }
